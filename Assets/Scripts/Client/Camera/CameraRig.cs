@@ -1,42 +1,43 @@
 using UnityEngine;
+using System.Collections.Generic;
+
+[System.Serializable]
+public class RoleViewSet
+{
+    public PlayerRole role;
+    public GameObject camera;
+    public GameObject canvas;
+}
 
 public class CameraRig : MonoBehaviour
 {
-    [SerializeField] private GameObject hostCamera;
-    [SerializeField] private GameObject hostCanvas;
+    [SerializeField] private List<RoleViewSet> roleViewSets;
 
-    [SerializeField] private GameObject clientCamera;
-    [SerializeField] private GameObject clientCanvas;
+    private Dictionary<PlayerRole, RoleViewSet> roleViewMap;
 
-    public void SetupRoleBasedView(PlayerRole role)
+    private void Awake()
     {
-        switch (role)
+        roleViewMap = new Dictionary<PlayerRole, RoleViewSet>();
+        foreach (var set in roleViewSets)
         {
-            case PlayerRole.Host:
-                ActivateHostView();
-                break;
-            case PlayerRole.Client:
-                ActivateClientView();
-                break;
+            if (!roleViewMap.ContainsKey(set.role))
+            {
+                roleViewMap.Add(set.role, set);
+            }
+            else
+            {
+                Debug.LogWarning($"Duplicate role found: {set.role}");
+            }
         }
     }
 
-    private void ActivateHostView()
+    public void SetupRoleBasedView(PlayerRole role)
     {
-        hostCanvas.SetActive(true);
-        hostCamera.SetActive(true);
-
-        clientCanvas.SetActive(false);
-        clientCamera.SetActive(false);
+        foreach (var set in roleViewSets)
+        {
+            bool isActive = set.role == role;
+            if (set.canvas != null) set.canvas.SetActive(isActive);
+            if (set.camera != null) set.camera.SetActive(isActive);
+        }
     }
-
-    private void ActivateClientView()
-    {
-        clientCanvas.SetActive(true);
-        clientCamera.SetActive(true);
-
-        hostCanvas.SetActive(false);
-        hostCamera.SetActive(false);
-    }
-
 }

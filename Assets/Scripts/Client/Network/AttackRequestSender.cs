@@ -49,8 +49,6 @@ public class AttackRequestSender: NetworkBehaviour, IAttackSender
             return;
         }
 
-        Debug.Log($"Received Attack Request from {info.Source.PlayerId}");
-
         var attackData = new AttackData
         {
             Level = data.Level,

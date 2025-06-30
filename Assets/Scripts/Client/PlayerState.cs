@@ -4,11 +4,12 @@ public struct NetworkPlayerState : INetworkStruct
 
 {
     public int Level;
-    public Direction upDirection;
+    public Direction UpDirection;
 }
 
 public enum PlayerRole : byte
 {
     Host,
-    Client
+    Client,
+    Waiting
 }

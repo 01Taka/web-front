@@ -40,7 +40,12 @@ public class NetworkPlayerController : NetworkBehaviour
             if (inputAttackHandler != null)
             {
                 inputAttackHandler.enabled = true;
-                inputAttackHandler.Setup(attackSender, SceneComponentManager.Instance.GameCamera);
+                inputAttackHandler.Setup(
+                    attackSender,
+                    SceneComponentManager.Instance.AttackRecognizer,
+                    SceneComponentManager.Instance.GameCamera,
+                    DirectionExtensions.ToVector2(playerProperties.PlayerState.UpDirection)
+                );
             }
             else
             {

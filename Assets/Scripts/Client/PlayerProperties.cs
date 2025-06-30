@@ -22,7 +22,7 @@ public class PlayerProperties : NetworkBehaviour
         {
             Role = DetermineInitialRole();
 
-            if (Role == PlayerRole.Client)
+            if (Role == PlayerRole.Waiting)
                 InitializeClientState();
         }
         catch (Exception ex)
@@ -36,7 +36,7 @@ public class PlayerProperties : NetworkBehaviour
         if (Runner == null || Runner.LocalPlayer == null)
         {
             Debug.LogWarning("[PlayerProperties] Runner or LocalPlayer is null. Defaulting to Client.");
-            return PlayerRole.Client;
+            return PlayerRole.Waiting;
         }
 
         return SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(Runner.LocalPlayer)
@@ -49,7 +49,7 @@ public class PlayerProperties : NetworkBehaviour
         PlayerState = new NetworkPlayerState
         {
             Level = 1,
-            upDirection = Direction.Up
+            UpDirection = Direction.Up
         };
     }
 
@@ -83,7 +83,7 @@ public class PlayerProperties : NetworkBehaviour
         PlayerState = new NetworkPlayerState
         {
             Level = level,
-            upDirection = direction
+            UpDirection = direction
         };
     }
 }

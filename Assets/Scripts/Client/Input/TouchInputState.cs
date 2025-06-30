@@ -6,7 +6,6 @@ public class TouchInputState
     public Vector2 TouchStart { get; private set; }
     public Vector2 TouchEnd { get; private set; }
     public float StartTime { get; private set; }
-    public Vector2 CurrentTouchPos => IsTouching ? TouchStart : TouchEnd;
     public float HoldDuration => Time.time - StartTime;
 
     public void StartTouch(Vector2 start)
