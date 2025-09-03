@@ -32,9 +32,8 @@ public class NetworkPlayerController : NetworkBehaviour
             cameraRig = SceneComponentManager.Instance.CameraRig;
             cameraController = new PlayerCameraController(cameraRig, Properties);
 
-            int attackPoint = 1;
             attackSender = GetComponent<AttackRequestSender>();
-            attackSender.Setup(Properties.PlayerState.Level, attackPoint);
+            attackSender.Setup(Properties.PlayerState.Level);
 
             inputAttackHandler = GetComponent<InputAttackHandler>();
             if (inputAttackHandler != null)

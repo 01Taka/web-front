@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10295d1ebe5f292488c47b22236d594c, type: 3}
+  m_Name: Mechanical Spider Leg Settings
+  m_EditorClassIdentifier: 
+  returningMoveDuration: 1
+  idleAmplitude: 0.1
+  idleSpeed: 2
+  punchLiftHeight: 1
+  punchLiftDuration: 0.5
+  punchMoveDuration: 0.2
+  holdJitterAmplitude: 0.05
+  holdJitterSpeed: 10
+  swingWindupDistance: 4
+  swingWindupDuration: 0.3
+  swingWindupHoldDuration: 0.05
+  swingDistance: 3
+  swingDuration: 0.5
+  swingHoldDuration: 0.5
+  returningFromSwingDuration: 0.5
+  punchStartClip: {fileID: 8300000, guid: 9f109de15aa05fa4989fcf4f2c61a356, type: 3}
+  punchImpactClip: {fileID: 8300000, guid: ba392900b0c7dad408a3cd383ff631b9, type: 3}
+  swingStartClip: {fileID: 8300000, guid: 1cecf411b89287d4da214e1f03af9639, type: 3}

@@ -15,7 +15,7 @@ MonoBehaviour:
   type: 2
   projectilePrefab: {fileID: 1923463801556368040, guid: cfcb89669db34c643afb84f59e6ec4a4, type: 3}
   baseSpeed: 15
-  baseDamage: 30
+  baseDamage: 15
   range: 5
   detectionRadius: 1
   usesCharge: 0

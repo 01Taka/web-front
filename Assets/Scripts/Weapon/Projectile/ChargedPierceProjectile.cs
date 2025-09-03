@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class ChargedPierceProjectile : ProjectileBase
 {
-    protected override void OnEnemyDetected(GameObject enemy)
+    protected override void OnEnemyDetected(IDamageable enemy)
     {
+        base.OnEnemyDetected(enemy);
         // スタン効果付与（仮）
-        Debug.Log($"[ChargedPierce] Stunning {enemy.name}");
     }
 }

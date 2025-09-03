@@ -11,28 +11,20 @@ public class NetworkRunnerHandler : MonoBehaviour
     [SerializeField] private NetworkGameManager gameManager;
 
     [Header("Game Settings")]
-    [SerializeField] private string sessionName = "DefaultSession";
     [SerializeField] private string gameSceneName = "GameScene";
 
     private NetworkRunner runner;
 
-    public async void CallStartGame()
-    {
-        try
-        {
-            await StartGame();
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"Unexpected error occurred during game start: {ex}");
-        }
-    }
-
-    public async Task StartGame()
+    /// <summary>
+    /// 指定されたセッション名でゲームを開始する非同期メソッド。
+    /// このメソッドは、UI管理クラスから呼び出されることを想定しています。
+    /// </summary>
+    /// <param name="sessionName">参加または作成するセッション名</param>
+    public async Task StartGame(string sessionName)
     {
         if (runner != null)
         {
-            Debug.LogWarning("Game has already started.");
+            Debug.LogWarning("ゲームは既に開始されています。");
             return;
         }
 
@@ -107,6 +99,9 @@ public class NetworkRunnerHandler : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 指定されたシーンをアクティブにするヘルパーメソッド。
+    /// </summary>
     private bool SetActiveScene(string sceneName)
     {
         Scene scene = SceneManager.GetSceneByName(sceneName);

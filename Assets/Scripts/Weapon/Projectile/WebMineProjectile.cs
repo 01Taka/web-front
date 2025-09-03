@@ -10,9 +10,9 @@ public class WebMineProjectile : ProjectileBase
         transform.rotation *= Quaternion.Euler(0f, 0f, rotationSpeed * Time.deltaTime);
     }
 
-    protected override void OnEnemyDetected(GameObject enemy)
+    protected override void OnEnemyDetected(IDamageable enemy)
     {
-        Debug.Log($"[WebMine] Triggered by {enemy.name}");
+        base.OnEnemyDetected(enemy);
         DeployWeb();
         Destroy(gameObject);
     }

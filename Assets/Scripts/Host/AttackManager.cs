@@ -1,3 +1,4 @@
+using Fusion;
 using UnityEngine;
 
 public class AttackManager : MonoBehaviour
@@ -6,28 +7,77 @@ public class AttackManager : MonoBehaviour
     [SerializeField] private AttackDatabase attackDatabase;
 
     [Header("VolleyBurstOptions")]
-    [SerializeField] float spreadAngle = 15f;
-    [SerializeField] float rangeVariance = 0.2f;
+    [SerializeField] private float spreadAngle = 15f;
+    [SerializeField] private float rangeVariance = 0.2f;
+
+    [Header("TestOptions")]
+    [SerializeField] private Transform _testAttackPoint;
+    [SerializeField] private bool _isActiveTestMode;
 
     private ProjectileSpawner projectileSpawner;
 
     private void Start()
     {
+        // Nullチェックを追加して、コンポーネントの割り当て漏れを防ぐ
         projectileSpawner = GetComponent<ProjectileSpawner>();
+        if (projectileSpawner == null)
+        {
+            Debug.LogError("ProjectileSpawner component is missing on this GameObject.", this);
+        }
+    }
+
+    public bool TryGetAttackPosition(PlayerRef attacker, out Vector3 attackPosition)
+    {
+        attackPosition = Vector3.zero;
+
+        if (_isActiveTestMode)
+        {
+            attackPosition = _testAttackPoint.position;
+            return true;
+        }
+
+        if (!GlobalRegistry.Instance.GetNetworkPlayerManager().TryGetCompactedIndex(attacker, out int pointIndex))
+        {
+            Debug.LogWarning("Failed to get player index. Attack aborted.");
+            return false;
+        }
+
+        if (!SceneComponentManager.Instance.AttackPointManager.TryGetAttackPoint(pointIndex, out Vector3 attackPos))
+        {
+            Debug.LogWarning("Failed to get attack position.");
+            return false;
+        }
+
+        attackPosition = attackPos;
+        return true;
     }
 
     public void HandleAttack(AttackData data)
     {
-        var attackConfig = attackDatabase.GetData(data.Type);
-        if (attackConfig == null)
+        // 1. 早期リターン: 必須コンポーネントのチェック
+        if (projectileSpawner == null)
         {
-            Debug.LogWarning($"No config found for AttackType {data.Type}");
+            Debug.LogError("ProjectileSpawner is not available. Cannot handle attack.", this);
             return;
         }
 
-        Vector3 attackPos = SceneComponentManager.Instance.AttackPointManager.GetAttackPoint(data.AttackPoint);
+        // 2. 早期リターン: AttackDataの取得
+        var attackConfig = attackDatabase.GetData(data.Type);
+        if (attackConfig == null)
+        {
+            Debug.LogWarning($"No config found for AttackType {data.Type}. Attack aborted.");
+            return;
+        }
+
+        // 3. 早期リターン: 発射位置の取得
+        if (!TryGetAttackPosition(data.AttackerRef, out Vector3 attackPos))
+        {
+            return;
+        }
+
         attackPos.z = zPos;
 
+        // 4. ベースパラメータの初期化
         Vector3 direction = data.Direction.normalized;
         float damage = attackConfig.baseDamage;
         float speed = attackConfig.baseSpeed;
@@ -37,77 +87,72 @@ public class AttackManager : MonoBehaviour
         float effectInterval = attackConfig.effectInterval;
         float effectRadius = attackConfig.effectRadius;
 
-        // 各タイプごとの挙動
+        float chargeRatio = 0f;
+        float multiplier = 1f;
+
+        // 5. 各タイプごとの固有挙動
         switch (data.Type)
         {
             case AttackType.ChargedPierce:
+            case AttackType.WebMine:
+                // チャージ処理の共通ロジック
+                chargeRatio = Mathf.Clamp01(data.ChargeAmount / attackConfig.maxChargeAmount);
+
+                // 最小チャージしきい値チェック
+                if (chargeRatio < attackConfig.minRequiredCharge)
                 {
-                    // チャージ割合（0-1）
-                    float chargeRatio = Mathf.Clamp01(data.ChargeAmount / attackConfig.maxChargeAmount);
-
-                    // 最小チャージしきい値をチェック（例: 0.2f）
-                    if (chargeRatio < attackConfig.minRequiredCharge)
+                    Debug.Log($"Charge too low ({data.ChargeAmount}). Incomplete attack launched.");
+                    damage *= attackConfig.incompleteMultiplier;
+                    // 他のパラメータにも適用したい場合はここで乗算
+                    if (data.Type == AttackType.ChargedPierce)
                     {
-                        Debug.Log($"チャージ不足: {data.ChargeAmount}（必要: {attackConfig.minRequiredCharge * attackConfig.maxChargeAmount}）");
-
-                        // 弱い攻撃を代わりに出す or 不発
-                        damage *= attackConfig.incompleteMultiplier;
                         speed *= attackConfig.incompleteMultiplier;
                         range *= attackConfig.incompleteMultiplier;
-                        break;
                     }
-
+                    else // WebMineの場合
+                    {
+                        effectRadius *= attackConfig.incompleteMultiplier;
+                        effectDuration *= attackConfig.incompleteMultiplier;
+                    }
+                }
+                else
+                {
                     // 有効チャージ範囲を再正規化（0-1）
                     float t = (chargeRatio - attackConfig.minRequiredCharge) / (1f - attackConfig.minRequiredCharge);
+                    t = Mathf.Clamp01(t); // 念のためクランプ
+                    multiplier = Mathf.Lerp(1f, attackConfig.maxChargeMultiplier, t);
 
-                    float multiplier = Mathf.Lerp(1f, attackConfig.maxChargeMultiplier, t);
-                    Debug.Log($"[ChargedPierce] mul: {multiplier}, charge: {data.ChargeAmount}");
-
+                    Debug.Log($"[{data.Type}] Charge Multiplier: {multiplier}, Amount: {data.ChargeAmount}");
                     damage *= multiplier;
-                    speed *= multiplier;
-                    range *= multiplier;
-                    break;
+
+                    if (data.Type == AttackType.ChargedPierce)
+                    {
+                        speed *= multiplier;
+                        range *= multiplier;
+                    }
+                    else // WebMineの場合
+                    {
+                        effectRadius *= multiplier;
+                        effectDuration *= multiplier;
+                    }
                 }
+                break;
+
             case AttackType.VolleyBurst:
-                {
-                    float angleOffset = Random.Range(-spreadAngle, spreadAngle);
-                    direction = Quaternion.Euler(0, 0, angleOffset) * direction;
+                float angleOffset = Random.Range(-spreadAngle, spreadAngle);
+                direction = Quaternion.Euler(0, 0, angleOffset) * direction;
 
-                    float distanceMultiplier = Random.Range(1f - rangeVariance, 1f + rangeVariance);
-                    range *= distanceMultiplier;
-
-                    break;
-                }
-
-            case AttackType.WebMine:
-                {
-                    // チャージ割合（0-1）
-                    float chargeRatio = Mathf.Clamp01(data.ChargeAmount / attackConfig.maxChargeAmount);
-
-                    // 有効チャージ範囲を 0-1 に再正規化
-                    float t = (chargeRatio - attackConfig.minRequiredCharge) / (1f - attackConfig.minRequiredCharge);
-                    t = Mathf.Clamp01(t); // 念のため制限
-
-                    float multiplier = Mathf.Lerp(1f, attackConfig.maxChargeMultiplier, t);
-
-                    Debug.Log($"[WebMine] mul: {multiplier}, charge: {data.ChargeAmount}");
-
-                    damage *= multiplier;
-                    effectRadius *= multiplier;
-                    effectDuration *= multiplier;
-
-                    break;
-                }
+                float distanceMultiplier = Random.Range(1f - rangeVariance, 1f + rangeVariance);
+                range *= distanceMultiplier;
+                break;
 
             case AttackType.SilkSnare:
-                {
-                    // SilkSnare はシンプルな連射系
-                    // 特別な挙動はProjectileで処理
-                    break;
-                }
+                // シンプルな攻撃のため、ここでは特別な処理なし
+                break;
         }
 
-        ProjectileSpawnParams spawnParams = new()
+        // 6. ProjectileSpawnParamsの生成
+        var spawnParams = new ProjectileSpawnParams
         {
             Type = data.Type,
             Position = attackPos,
@@ -121,6 +166,7 @@ public class AttackManager : MonoBehaviour
             EffectRadius = effectRadius,
         };
 
+        // 7. 発射処理
         projectileSpawner.SpawnProjectile(spawnParams, attackConfig.projectilePrefab);
     }
 }

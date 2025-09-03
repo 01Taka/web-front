@@ -9,12 +9,14 @@ public class SceneComponentManager : MonoBehaviour
     [SerializeField] private AttackRecognizer attackRecognizer;
     [SerializeField] private AttackPointManager attackPointManager;
     [SerializeField] private CameraRig cameraRig;
+    [SerializeField] private GameManager _gameManager;
 
     public Camera GameCamera => gameCamera;
     public AttackManager AttackManager => attackManager;
     public AttackRecognizer AttackRecognizer => attackRecognizer;
     public AttackPointManager AttackPointManager => attackPointManager;
     public CameraRig CameraRig => cameraRig;
+    public GameManager GameManager => _gameManager;
 
     void Awake()
     {

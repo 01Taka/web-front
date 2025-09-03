@@ -4,12 +4,10 @@ using UnityEngine;
 public class AttackRequestSender: NetworkBehaviour, IAttackSender
 {
     private int level;
-    private int attackPoint;
 
-    public void Setup(int level, int attackPoint)
+    public void Setup(int level)
     {
         this.level = level;
-        this.attackPoint = attackPoint;
     }
 
     public void SendAttack(AttackInputData inputData)
@@ -23,7 +21,6 @@ public class AttackRequestSender: NetworkBehaviour, IAttackSender
         var data = new AttackDataNetwork
         {
             Level = level,
-            AttackPoint = attackPoint,
             Type = inputData.Type,
             Direction = inputData.Direction,
             ChargeAmount = inputData.ChargeAmount,
@@ -51,8 +48,8 @@ public class AttackRequestSender: NetworkBehaviour, IAttackSender
 
         var attackData = new AttackData
         {
+            AttackerRef = info.Source,
             Level = data.Level,
-            AttackPoint = data.AttackPoint,
             Type = data.Type,
             Direction = data.Direction,
             ChargeAmount = data.ChargeAmount,

@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 0
   projectilePrefab: {fileID: 5474699479343154451, guid: a259fc9d5f4ad84428293fbcd59bef9e, type: 3}
-  baseSpeed: 10
-  baseDamage: 40
+  baseSpeed: 30
+  baseDamage: 50
   range: 20
   detectionRadius: 1
   usesCharge: 0
