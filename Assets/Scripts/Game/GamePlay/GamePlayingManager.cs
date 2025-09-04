@@ -5,23 +5,24 @@ public class GamePlayingManager : MonoBehaviour
 {
     [SerializeField] private GameSetting _gameSetting;
     [SerializeField] private TimerCountUI _gameTimerCountUI;
-    [SerializeField] private PlayerManager _playerManager; // Unused, consider removing if not needed elsewhere
+    [SerializeField] private PlayerManager _playerManager;
     [SerializeField] private BossSpawner _bossSpawner;
     [SerializeField] private HordeSpawner _hordeSpawner;
     [SerializeField] private BossId _bossId;
     [SerializeField] private ScoreManager _scoreManager;
 
     private TimerManager _timerManager;
-    [SerializeField] private ScoreBreakdown _finalScoreBreakdown;
+    private GameManager _gameManager;
 
     // Initialization method called from GameManager instead of Start
-    public void InitializeGame()
+    public void InitializeGame(GameManager gameManager)
     {
         // Initialize timer
         _timerManager = new TimerManager(_gameSetting.TimeLimit);
         _timerManager.OnTimerTick += () => _gameTimerCountUI.UpdateTimerUI(_timerManager.GetRemainingTime());
         _timerManager.OnTimerEnd += OnTimeUp;
         _timerManager.StartTimer();
+        _gameManager = gameManager;
 
         // Spawn boss and set up event listeners
         if (!_bossSpawner.TrySpawn(_bossId))
@@ -92,10 +93,12 @@ public class GamePlayingManager : MonoBehaviour
     {
         _scoreManager.OnBossDefeat();
 
-        _finalScoreBreakdown = _scoreManager.CalculateFinalScore(
+        ScoreBreakdown finalScoreBreakdown = _scoreManager.CalculateFinalScore(
             _timerManager.GetRemainingTime(),
             _bossSpawner.CurrentBossBossManager.CurrentPhaseIndex,
-            0f);
+            0f,
+            _playerManager.TakenDamage);
+        SetFinalScoreBreakDown(finalScoreBreakdown);
 
         // Stop all game systems
         _hordeSpawner.StopSpawn();
@@ -105,14 +108,22 @@ public class GamePlayingManager : MonoBehaviour
 
     private void OnTimeUp()
     {
-        _finalScoreBreakdown = _scoreManager.CalculateFinalScore(
+        ScoreBreakdown finalScoreBreakdown = _scoreManager.CalculateFinalScore(
             0,
             _bossSpawner.CurrentBossBossManager.CurrentPhaseIndex,
-            _bossSpawner.CurrentBossBossManager.RemainingHealthRatio);
+            _bossSpawner.CurrentBossBossManager.RemainingHealthRatio,
+            _playerManager.TakenDamage);
+        SetFinalScoreBreakDown(finalScoreBreakdown);
 
         // Stop all game systems
         _hordeSpawner.StopSpawn();
         _bossSpawner.DestoryBoss();
+    }
+
+    private void SetFinalScoreBreakDown(ScoreBreakdown finalScoreBreakdown)
+    {
+        _gameManager.SetScoreBreakDown(finalScoreBreakdown);
+        _gameManager.SetGameState(GameManager.GameState.Score);
     }
 
     /// <summary>

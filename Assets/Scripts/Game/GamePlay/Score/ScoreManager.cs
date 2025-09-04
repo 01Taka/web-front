@@ -1,16 +1,31 @@
 using UnityEngine;
-using System;
+using System.Collections.Generic;
 
-[Serializable]
+public enum ScoreType
+{
+    BossDefeatBonus,
+    BossDamageBonus,
+    HordeEnemyScore,
+    TimeRemainingBonus,
+    DamageTakenPenalty,
+}
+
 public class ScoreBreakdown
 {
-    public int BossDefeatBonus = 0;
-    public int BossDamageBonus = 0;
-    public int HordeEnemyScore = 0;
-    public int TimeRemainingBonus = 0;
-    public int DamageTakenPenalty = 0;
+    public Dictionary<ScoreType, int> scores = new Dictionary<ScoreType, int>();
 
-    public int TotalScore => BossDefeatBonus + BossDamageBonus + HordeEnemyScore + TimeRemainingBonus + DamageTakenPenalty;
+    public int TotalScore
+    {
+        get
+        {
+            int total = 0;
+            foreach (var score in scores.Values)
+            {
+                total += score;
+            }
+            return total;
+        }
+    }
 }
 
 public class ScoreManager : MonoBehaviour
@@ -18,19 +33,12 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private ScoreData _scoreData;
 
     private int _hordeEnemyKilledCount = 0;
-    private int _totalDamageTaken = 0;
     private bool _isBossDefeated = false;
 
     public void Initialize()
     {
         _hordeEnemyKilledCount = 0;
-        _totalDamageTaken = 0;
         _isBossDefeated = false;
-    }
-
-    public void AddDamageTaken(int damage)
-    {
-        _totalDamageTaken += damage;
     }
 
     public void AddHordeEnemyKill()
@@ -46,35 +54,36 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
-    public ScoreBreakdown CalculateFinalScore(float remainingTime, int bossPhaseIndex, float currentPhaseHpPercent)
+    public ScoreBreakdown CalculateFinalScore(float remainingTime, int bossPhaseIndex, float currentPhaseHpPercent, float totalDamageTaken)
     {
         var breakdown = new ScoreBreakdown();
 
         // ボス撃破ボーナス
         if (_isBossDefeated)
         {
-            breakdown.BossDefeatBonus = _scoreData.ScoreOnBossDefeat;
+            breakdown.scores[ScoreType.BossDefeatBonus] = _scoreData.ScoreOnBossDefeat;
         }
 
         // ボスHP削りボーナス
-        breakdown.BossDamageBonus = GetBossHealthScore(bossPhaseIndex, currentPhaseHpPercent);
+        breakdown.scores[ScoreType.BossDamageBonus] = GetBossHealthScore(bossPhaseIndex, currentPhaseHpPercent);
 
         // 雑魚敵撃破スコア
-        breakdown.HordeEnemyScore = _hordeEnemyKilledCount * _scoreData.ScorePerHordeEnemyDefeat;
+        breakdown.scores[ScoreType.HordeEnemyScore] = _hordeEnemyKilledCount * _scoreData.ScorePerHordeEnemyDefeat;
 
         // 残り時間ボーナス
         if (remainingTime > 0)
         {
-            breakdown.TimeRemainingBonus = Mathf.FloorToInt(remainingTime) * _scoreData.ScorePerSecondRemaining;
+            breakdown.scores[ScoreType.TimeRemainingBonus] = Mathf.FloorToInt(remainingTime) * _scoreData.ScorePerSecondRemaining;
         }
 
         // ダメージ減点
-        breakdown.DamageTakenPenalty = _totalDamageTaken * _scoreData.ScorePerDamageTaken;
+        breakdown.scores[ScoreType.DamageTakenPenalty] = Mathf.FloorToInt(totalDamageTaken) * _scoreData.ScorePerDamageTaken;
 
         // 合計スコアがマイナスにならないように調整
         if (breakdown.TotalScore < 0)
         {
-            breakdown.DamageTakenPenalty = -breakdown.TotalScore;
+            int penalty = breakdown.scores[ScoreType.DamageTakenPenalty];
+            breakdown.scores[ScoreType.DamageTakenPenalty] = penalty - breakdown.TotalScore;
         }
 
         return breakdown;

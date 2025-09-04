@@ -6,42 +6,85 @@ public class ConcreteBossManager : BaseBossManager
     [Header("外部コンポーネント")]
     [SerializeField]
     private Transform _bossAttackHolder;
-
-    public IDamageable _playerTarget;
-
     private BossAttackManager _attackManager;
 
-    protected override void Awake()
+    public void Initialize(IDamageable attackTarget)
     {
-        base.Awake();
+
+        // 必須の外部コンポーネントが設定されているかチェック
+        if (_bossAttackHolder == null)
+        {
+            Debug.LogError("`_bossAttackHolder`が設定されていません。", this);
+            return;
+        }
+
+        // 必須の外部コンポーネントが設定されているかチェック
+        if (attackTarget == null)
+        {
+            Debug.LogError("`_attackTarget`が設定されていません。", this);
+            return;
+        }
 
         // BossAttackManagerのインスタンスを作成して、攻撃管理を担当させる
         _attackManager = new BossAttackManager();
-        _attackManager.Initialize(this, InitializeBossAttackLogicExecutor(), CurrentPhaseSettings.firingPorts);
+        _attackManager.Initialize(this, InitializeBossAttackLogicExecutor(attackTarget), CurrentPhaseSettings.firingPorts);
     }
 
-    private BossAttackLogicExecutor InitializeBossAttackLogicExecutor()
+    private BossAttackLogicExecutor InitializeBossAttackLogicExecutor(IDamageable attackTarget)
     {
         Dictionary<BossAttackType, IBossAttack> attackLogics = new Dictionary<BossAttackType, IBossAttack>();
 
         // _bossAttackHolder にアタッチされているすべての IBossAttack を取得
         IBossAttack[] allAttacks = _bossAttackHolder.GetComponents<IBossAttack>();
 
+        if (allAttacks.Length == 0)
+        {
+            Debug.LogWarning("`_bossAttackHolder`にIBossAttackコンポーネントが見つかりませんでした。", this);
+        }
+
         foreach (var attack in allAttacks)
         {
+            if (attack == null)
+            {
+                Debug.LogWarning("IBossAttackコンポーネントがnullです。スキップします。", this);
+                continue;
+            }
+
             Debug.Log(attack.AttackType);
 
             // 各攻撃コンポーネントの AttackType プロパティを使用して辞書に追加
-            attackLogics.Add(attack.AttackType, attack);
+            // 同じ AttackType が存在しないかチェック
+            if (!attackLogics.ContainsKey(attack.AttackType))
+            {
+                attackLogics.Add(attack.AttackType, attack);
+            }
+            else
+            {
+                Debug.LogWarning($"既に同じAttackType '{attack.AttackType}'が辞書に存在します。新しいコンポーネントは無視されます。", this);
+            }
         }
 
+        // アニメーションコントローラーの存在をチェック
         IBossAnimationController animationController = GetComponent<IBossAnimationController>();
-        return new BossAttackLogicExecutor(animationController, this, _playerTarget, attackLogics);
+        if (animationController == null)
+        {
+            Debug.LogError("`IBossAnimationController`コンポーネントがこのゲームオブジェクトに見つかりませんでした。", this);
+            return null; // 早期リターン
+        }
+
+        return new BossAttackLogicExecutor(animationController, this, attackTarget, attackLogics);
     }
 
     protected override void ExecuteAttack(AttackPattern pattern)
     {
-        // 攻撃マネージャーに処理を委譲
-        _attackManager.ExecuteAttack(pattern);
+        // 攻撃マネージャーがnullでないことを確認してから処理を委譲
+        if (_attackManager != null)
+        {
+            _attackManager.ExecuteAttack(pattern);
+        }
+        else
+        {
+            Debug.LogError("`_attackManager`が初期化されていません。攻撃を実行できません。", this);
+        }
     }
 }

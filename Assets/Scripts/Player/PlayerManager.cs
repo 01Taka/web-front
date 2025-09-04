@@ -1,33 +1,42 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerManager : MonoBehaviour, IDamageable
 {
-    public DamageTakenManager DamageTakenManager = new DamageTakenManager();
-    public DamageDealtManager DamageDealtManager = new DamageDealtManager();
+    [SerializeField] private ScreenShake _screenShake;
+    [SerializeField] private ScreenFader _fader;
 
-    private void Start()
+    private DamageTakenManager _damageTakenManager = new DamageTakenManager();
+    public float TakenDamage => _damageTakenManager.TakenDamage;
+
+    private void Awake()
     {
-        List<int> players = new List<int>() { 0, 1, 2, 3 };
-
-        foreach (var playerId in players)
+        // _screenShakeが設定されているか確認
+        if (_screenShake == null)
         {
-            AddPlayer(playerId);
+            Debug.LogError("ScreenShakeコンポーネントがアタッチされていません。", this);
         }
-    }
 
-    public void AddPlayer(int playerId)
-    {
-        DamageDealtManager.AddPlayer(playerId);
+        // _faderが設定されているか確認
+        if (_fader == null)
+        {
+            Debug.LogError("ScreenFaderコンポーネントがアタッチされていません。", this);
+        }
     }
 
     public void TakeDamage(float damage)
     {
-        DamageTakenManager.TakeDamage(damage);
-    }
+        // ダメージ処理
+        _damageTakenManager.TakeDamage(damage);
 
-    public void DealtDamage(float damage, int playerId)
-    {
-        DamageDealtManager.DealteDamage(damage, playerId);
+        // 各コンポーネントがnullでない場合のみメソッドを呼び出す
+        if (_screenShake != null)
+        {
+            _screenShake.StartShake();
+        }
+
+        if (_fader != null)
+        {
+            _fader.Flash();
+        }
     }
 }

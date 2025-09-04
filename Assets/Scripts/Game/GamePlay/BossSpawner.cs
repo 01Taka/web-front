@@ -8,9 +8,10 @@ public class BossSpawner : MonoBehaviour
     [SerializeField] private Vector3 _spawnOffset; // スポーン位置を調整するためのフィールドを追加
     [SerializeField] private BossSettings[] _bossSettings; // ボス設定の配列
     [SerializeField] private HpBarManager _hpBarManager;
+    [SerializeField] private PlayerManager _playerManager;
 
-    private BaseBossManager _currentBossBossManager;
-    public BaseBossManager CurrentBossBossManager => _currentBossBossManager;
+    private ConcreteBossManager _currentBossBossManager;
+    public ConcreteBossManager CurrentBossBossManager => _currentBossBossManager;
     [SerializeField] private UnityEvent _onBossDestroyed = new UnityEvent();
 
     public bool TrySpawn(BossId id)
@@ -38,10 +39,11 @@ public class BossSpawner : MonoBehaviour
         var boss = Instantiate(bossSetting.bossInstance, _parent.position + _spawnOffset, Quaternion.identity, _parent);
 
         // 生成されたオブジェクトに BaseBossManager が付いているか確認
-        if (boss.TryGetComponent(out BaseBossManager bossManager))
+        if (boss.TryGetComponent(out ConcreteBossManager bossManager))
         {
             _hpBarManager.SetTarget(bossManager.HealthManager);
             _currentBossBossManager = bossManager;
+            bossManager.Initialize(_playerManager);
         }
         else
         {

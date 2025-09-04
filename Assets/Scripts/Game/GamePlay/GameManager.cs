@@ -8,7 +8,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject scorePanel;
 
     // GamePlayingManagerへの参照を追加
-    [SerializeField] private GamePlayingManager gamePlayingManager;
+    [SerializeField] private GamePlayingManager _gamePlayingManager;
+    [SerializeField] private GameScoreManager _gameScoreManager;
+
+    private ScoreBreakdown _scoreBreakdown;
 
     // ゲームの状態を管理するための列挙型（enum）
     public enum GameState
@@ -60,17 +63,24 @@ public class GameManager : MonoBehaviour
 
             case GameState.Playing:
                 // ゲームプレイの開始処理をGamePlayingManagerに委譲
-                if (gamePlayingManager != null)
+                if (_gamePlayingManager != null)
                 {
-                    gamePlayingManager.InitializeGame();
+                    _gamePlayingManager.InitializeGame(this);
                 }
-                Debug.Log("プレイ画面を表示");
                 break;
 
             case GameState.Score:
-                Debug.Log("スコア画面を表示");
+                if (_scoreBreakdown != null)
+                {
+                    _gameScoreManager.ShowScore(_scoreBreakdown);
+                }
                 break;
         }
+    }
+
+    public void SetScoreBreakDown(ScoreBreakdown scoreBreakdown)
+    {
+        _scoreBreakdown = scoreBreakdown;
     }
 
     //--------------------------------------------------------------------------------
