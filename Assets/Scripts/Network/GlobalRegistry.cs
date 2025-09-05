@@ -1,4 +1,5 @@
 using UnityEngine;
+using static Unity.Collections.Unicode;
 
 public class GlobalRegistry : MonoBehaviour
 {
@@ -14,6 +15,18 @@ public class GlobalRegistry : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    public bool CheckIsOnline()
+    {
+        NetworkPlayerManager manager = GetNetworkPlayerManager();
+        return manager != null && manager.IsOnline;
+    }
+
+    public bool CheckIsMasterClient()
+    {
+        NetworkPlayerManager manager = GetNetworkPlayerManager();
+        return manager != null && manager.IsMasterClient;
     }
 
     public NetworkPlayerManager GetNetworkPlayerManager()

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem.LowLevel;
 
 public class GameManager : MonoBehaviour
 {
@@ -22,12 +23,13 @@ public class GameManager : MonoBehaviour
     }
 
     // 現在のゲームの状態を保持する変数
-    private GameState currentState;
+    private GameState _currentState;
 
     void Start()
     {
         // ゲーム開始時はタイトル画面から始める
-        SetGameState(GameState.Title);
+        _currentState = GameState.Title;
+        UpdateUIState();
     }
 
     /// <summary>
@@ -36,12 +38,12 @@ public class GameManager : MonoBehaviour
     /// <param name="newState">新しいゲームの状態</param>
     public void SetGameState(GameState newState)
     {
-        if (currentState == newState)
+        if (_currentState == newState || !GlobalRegistry.Instance.CheckIsMasterClient())
         {
             return;
         }
 
-        currentState = newState;
+        _currentState = newState;
         UpdateUIState();
     }
 
@@ -51,21 +53,20 @@ public class GameManager : MonoBehaviour
     private void UpdateUIState()
     {
         // すべてのパネルを一旦非表示にする
-        titlePanel.SetActive(currentState == GameState.Title);
-        playPanel.SetActive(currentState == GameState.Playing);
-        scorePanel.SetActive(currentState == GameState.Score);
+        titlePanel.SetActive(_currentState == GameState.Title);
+        playPanel.SetActive(_currentState == GameState.Playing);
+        scorePanel.SetActive(_currentState == GameState.Score);
 
-        switch (currentState)
+        switch (_currentState)
         {
             case GameState.Title:
-                Debug.Log("タイトル画面を表示");
                 break;
 
             case GameState.Playing:
                 // ゲームプレイの開始処理をGamePlayingManagerに委譲
                 if (_gamePlayingManager != null)
                 {
-                    _gamePlayingManager.InitializeGame(this);
+                    _gamePlayingManager.StartGame(this);
                 }
                 break;
 
@@ -88,21 +89,15 @@ public class GameManager : MonoBehaviour
         _scoreBreakdown = scoreBreakdown;
     }
 
-    //--------------------------------------------------------------------------------
-    // ボタンのクリックイベントに割り当てるためのパブリックメソッド
-    //--------------------------------------------------------------------------------
-    public void OnStartButtonClicked()
+    public void OnGoToNextState()
     {
-        SetGameState(GameState.Playing);
-    }
-
-    public void OnGoToScoreButtonClicked()
-    {
-        SetGameState(GameState.Score);
-    }
-
-    public void OnGoToTitleButtonClicked()
-    {
-        SetGameState(GameState.Title);
+        if (_currentState == GameState.Title)
+        {
+            SetGameState(GameState.Playing);
+        }
+        if (_currentState == GameState.Score)
+        {
+            SetGameState(GameState.Title);
+        }
     }
 }

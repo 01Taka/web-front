@@ -20,19 +20,25 @@ public class AttackPointManager : MonoBehaviour
     private bool _isInitialized = false;
 
     // 以前のAwakeメソッドの代わりに、明示的な初期化メソッドを用意
-    public void Initialize(int numberOfPoints)
+    public bool Initialize(int numberOfPoints)
     {
         // 多重初期化を防ぐためのチェック
         if (_isInitialized)
         {
             Debug.LogWarning("AttackPointManager has already been initialized.");
-            return;
+            return true;
         }
 
         if (_startPoint == null || _endPoint == null)
         {
             Debug.LogError("Start Point or End Point is not assigned. Initialization failed.");
-            return;
+            return false;
+        }
+
+        if (numberOfPoints <= 0)
+        {
+            Debug.LogError("Cannot generate spawn points. Count must be greater than 0.");
+            return false;
         }
 
         _attackPointMap = new Dictionary<int, Transform>();
@@ -41,6 +47,7 @@ public class AttackPointManager : MonoBehaviour
         GenerateSpawnPoints(numberOfPoints);
 
         _isInitialized = true;
+        return true;
     }
 
     /// <summary>

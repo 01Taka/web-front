@@ -25,7 +25,6 @@ public class PlayerManager : MonoBehaviour, IDamageable
 
     public void TakeDamage(float damage)
     {
-        Debug.Log("ダメージを受けた！");
         // ダメージ処理
         _damageTakenManager.TakeDamage(damage);
 

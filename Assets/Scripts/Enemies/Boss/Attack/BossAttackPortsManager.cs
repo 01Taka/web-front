@@ -47,8 +47,6 @@ public class BossAttackPortsManager: IBossAttacdkLogicCallbasks
 
         var port = _allPorts[portType];
         port.SetAvailability(false);
-        MyLogger.Log($"ポート ({portType}) から {pattern.AttackName} 攻撃準備中...");
-
         _bossAttackLogic.OnBeginPreparation(pattern, port);
         _activeAttackPatterns[portType] = pattern;
 
@@ -188,7 +186,6 @@ public class BossAttackPortsManager: IBossAttacdkLogicCallbasks
 
     private void OnAttackTimerComplete(BossAttackPort port, AttackPattern pattern)
     {
-        MyLogger.Log($"ポート ({port.FiringPortType}) から {pattern.AttackName} 攻撃実行！");
         _bossAttackLogic.ExecuteAttack(pattern, port);
         _activeAttackPatterns.Remove(port.FiringPortType);
         port.SetAvailability(true);

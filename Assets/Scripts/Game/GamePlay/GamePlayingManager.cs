@@ -13,18 +13,73 @@ public class GamePlayingManager : MonoBehaviour
 
     private TimerManager _timerManager;
     private GameManager _gameManager;
+    private bool _isInitialized = false;
 
-    // Initialization method called from GameManager instead of Start
-    public void InitializeGame(GameManager gameManager)
+    // この部分はコンポーネントの初期化として一度だけ実行する
+    private bool Initialize()
     {
-        // Initialize timer
+        // TimerManagerのインスタンスを生成
         _timerManager = new TimerManager(_gameSetting.TimeLimit);
+        // イベントリスナーの登録（ゲームのライフサイクルを通して共通）
         _timerManager.OnTimerTick += () => _gameTimerCountUI.UpdateTimerUI(_timerManager.GetRemainingTime());
         _timerManager.OnTimerEnd += OnTimeUp;
-        _timerManager.StartTimer();
+
+        _hordeSpawner.OnHordeEnemyKilled.AddListener(OnHordeEnemyKilled);
+
+        if (SceneComponentManager.Instance.AttackManager.IsActiveTestMode)
+        {
+            return true;
+        }
+
+        // AttackPointManagerの初期化は一度だけ
+        if (TryGetPlayerCount(out int playerCount))
+        {
+            if (SceneComponentManager.Instance != null && SceneComponentManager.Instance.AttackPointManager != null)
+            {
+                // 一度だけ初期化する
+                if (!SceneComponentManager.Instance.AttackPointManager.Initialize(playerCount - 1))
+                {
+                    Debug.LogError("Failed to Initialize AttackPoint");
+                    return false;
+                }
+            }
+            else
+            {
+                Debug.LogError("SceneComponentManager or AttackPointManager not found.");
+                return false;
+            }
+        }
+        else
+        {
+            Debug.LogError("Failed to get player count.");
+            return false;
+        }
+
+        return true;
+    }
+
+    // ゲーム開始時に毎回実行される初期化
+    public void StartGame(GameManager gameManager)
+    {
+        if (!_isInitialized)
+        {
+            if (!Initialize())
+            {
+                Debug.LogError("Game initialization failed. Aborting StartGame.");
+                this.enabled = false;
+                return;
+            }
+            _isInitialized = true;
+        }
+
         _gameManager = gameManager;
 
-        // Spawn boss and set up event listeners
+        // ゲームシステムのリセットと再開
+        _scoreManager.Initialize();
+        _timerManager.ResetTimer();
+        _timerManager.StartTimer();
+
+        // ボスを再生成
         if (!_bossSpawner.TrySpawn(_bossId))
         {
             Debug.LogError("Failed to spawn boss. Disabling game manager.");
@@ -35,6 +90,7 @@ public class GamePlayingManager : MonoBehaviour
         var bossManager = _bossSpawner.CurrentBossBossManager;
         if (bossManager != null)
         {
+            // ボス固有のイベントリスナーは毎回再登録する
             bossManager.AddOnDeathAction(OnDeathBoss);
             bossManager.AddOnTransitionPhaseAction(OnPhaseTransition);
         }
@@ -43,28 +99,8 @@ public class GamePlayingManager : MonoBehaviour
             Debug.LogError("BossManager not found after spawning boss.");
         }
 
-        // Start enemy wave and initialize other systems
+        // 敵のスポーンを開始
         _hordeSpawner.StartSpawn();
-        _scoreManager.Initialize(); // Ensure ScoreManager is initialized
-        _hordeSpawner.OnHordeEnemyKilled.AddListener(OnHordeEnemyKilled);
-
-        // Get player count and initialize AttackPointManager
-        if (TryGetPlayerCount(out int playerCount))
-        {
-            if (SceneComponentManager.Instance != null && SceneComponentManager.Instance.AttackPointManager != null)
-            {
-                // Initialize after subtracting the administrator count
-                SceneComponentManager.Instance.AttackPointManager.Initialize(playerCount - 1);
-            }
-            else
-            {
-                Debug.LogError("SceneComponentManager or AttackPointManager not found.");
-            }
-        }
-        else
-        {
-            Debug.LogError("Failed to get player count.");
-        }
     }
 
     private void Update()
@@ -74,7 +110,6 @@ public class GamePlayingManager : MonoBehaviour
             _timerManager.UpdateTimer();
         }
     }
-
 
     private void OnHordeEnemyKilled()
     {
@@ -100,10 +135,7 @@ public class GamePlayingManager : MonoBehaviour
             _playerManager.TakenDamage);
         SetFinalScoreBreakDown(finalScoreBreakdown);
 
-        // Stop all game systems
-        _hordeSpawner.StopSpawn();
-        _bossSpawner.DestoryBoss();
-        _timerManager.StopTimer();
+        StopGameSystems();
     }
 
     private void OnTimeUp()
@@ -115,15 +147,20 @@ public class GamePlayingManager : MonoBehaviour
             _playerManager.TakenDamage);
         SetFinalScoreBreakDown(finalScoreBreakdown);
 
-        // Stop all game systems
-        _hordeSpawner.StopSpawn();
-        _bossSpawner.DestoryBoss();
+        StopGameSystems();
     }
 
     private void SetFinalScoreBreakDown(ScoreBreakdown finalScoreBreakdown)
     {
         _gameManager.SetScoreBreakDown(finalScoreBreakdown);
         _gameManager.SetGameState(GameManager.GameState.Score);
+    }
+
+    private void StopGameSystems()
+    {
+        _hordeSpawner.StopSpawn();
+        _bossSpawner.DestoryBoss();
+        _timerManager.StopTimer();
     }
 
     /// <summary>
@@ -149,6 +186,4 @@ public class GamePlayingManager : MonoBehaviour
         }
         return false;
     }
-
-
 }

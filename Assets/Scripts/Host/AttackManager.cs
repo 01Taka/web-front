@@ -12,7 +12,12 @@ public class AttackManager : MonoBehaviour
 
     [Header("TestOptions")]
     [SerializeField] private Transform _testAttackPoint;
-    [SerializeField] private bool _isActiveTestMode;
+    [SerializeField] public bool IsActiveTestMode;
+
+    public void SetActiveTestMode(bool isActiveTestMode)
+    {
+        IsActiveTestMode = isActiveTestMode;
+    }
 
     private ProjectileSpawner projectileSpawner;
 
@@ -30,7 +35,7 @@ public class AttackManager : MonoBehaviour
     {
         attackPosition = Vector3.zero;
 
-        if (_isActiveTestMode)
+        if (IsActiveTestMode)
         {
             attackPosition = _testAttackPoint.position;
             return true;
@@ -101,7 +106,6 @@ public class AttackManager : MonoBehaviour
                 // 最小チャージしきい値チェック
                 if (chargeRatio < attackConfig.minRequiredCharge)
                 {
-                    Debug.Log($"Charge too low ({data.ChargeAmount}). Incomplete attack launched.");
                     damage *= attackConfig.incompleteMultiplier;
                     // 他のパラメータにも適用したい場合はここで乗算
                     if (data.Type == AttackType.ChargedPierce)

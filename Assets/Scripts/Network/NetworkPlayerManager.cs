@@ -18,6 +18,9 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
     public override void Spawned() => Runner.AddCallbacks(this);
     public override void Despawned(NetworkRunner runner, bool hasState) => runner.RemoveCallbacks(this);
 
+    public bool IsOnline => Runner != null && Runner.IsRunning;
+    public bool IsMasterClient => Runner != null && Runner.IsRunning && Runner.IsSharedModeMasterClient;
+
     //--------------------------------------------------------------------------------
     // Player Handling
     //--------------------------------------------------------------------------------

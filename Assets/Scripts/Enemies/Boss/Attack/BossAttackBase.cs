@@ -24,14 +24,12 @@ public abstract class BossAttackBase : MonoBehaviour, IBossAttack
 
     public virtual void ExecuteAttack(BossAttackContext context)
     {
-        Debug.Log("ExecuteAttack");
         DamagePlayer(context);
         EndAnimation(context);
     }
 
     public virtual void OnCanceledAttack(BossAttackContext context)
     {
-        Debug.Log("OnCanceledAttack");
         DamageBoss(context);
         EndAnimation(context);
     }

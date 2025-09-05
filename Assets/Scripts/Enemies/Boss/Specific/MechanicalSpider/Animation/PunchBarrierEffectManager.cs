@@ -126,7 +126,6 @@ public class PunchBarrierEffectManager : MonoBehaviour
         for (int j = 0; j < barrier.ColorStepsCount; j++)
         {
             yield return new WaitForSeconds(timePerStep);
-            Debug.Log($"Next {j}");
             barrier.NextStep();
         }
     }

@@ -82,6 +82,7 @@ public class GameScoreManager : MonoBehaviour
     {
         foreach (var detail in _scoreDetailPool)
         {
+            detail.gameObject.SetActive(true);
             detail.ResetState();
             detail.gameObject.SetActive(false);
         }

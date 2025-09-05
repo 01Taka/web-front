@@ -17,6 +17,6 @@ MonoBehaviour:
   BaseDamage: 20
   AttackDuration: 5
   AttackPreparationTime: 0
-  CancelDamageThreshold: 130
-  CancelSelfInflictedDamage: 250
+  CancelDamageThreshold: 300
+  CancelSelfInflictedDamage: 550
   FiringPortType: 1

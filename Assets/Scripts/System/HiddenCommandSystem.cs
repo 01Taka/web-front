@@ -38,6 +38,16 @@ public class HiddenCommandSystem : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        Debug.Log("----Commands----");
+        foreach (var commandEvent in _commandEvents)
+        {
+            Debug.Log(commandEvent.commandString);
+        }
+        Debug.Log("--------------");
+    }
+
     void Update()
     {
         // キーボードがなければ何もしない

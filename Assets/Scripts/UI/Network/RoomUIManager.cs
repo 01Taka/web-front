@@ -14,6 +14,8 @@ public class RoomUIManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button _joinButton;
     [SerializeField] private UnityEngine.UI.Button _createButton;
 
+    [SerializeField] private int _timeOffsetByHour = 9;
+
     /// <summary>
     /// UnityのStartメソッドで初期設定を行います。
     /// </summary>
@@ -72,8 +74,9 @@ public class RoomUIManager : MonoBehaviour
             return false;
         }
 
-        // 入力値が過去の秒数であるかを確認
-        int currentSecondsOfDay = (int)(DateTime.UtcNow - DateTime.UtcNow.Date).TotalSeconds;
+        // 入力値が過去の秒数であるかを確認 (日本時間で検証)
+        DateTime nowInJapanTime = DateTime.UtcNow.AddHours(_timeOffsetByHour);
+        int currentSecondsOfDay = (int)(nowInJapanTime - nowInJapanTime.Date).TotalSeconds;
         if (userValue >= currentSecondsOfDay)
         {
             return false;
@@ -83,12 +86,18 @@ public class RoomUIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 現在時刻の「その日の午前0時からの秒数」を基にセッションIDを生成し、表示するメソッド。
+    /// 日本時間のその日中の秒数を基にセッションIDを生成し、表示するメソッド。
     /// </summary>
     public void GenerateSessionIdByTimeOfDay()
     {
-        // 現在時刻の、その日中の秒数を計算 (0～86399)
-        int uniqueId = (int)(DateTime.UtcNow - DateTime.UtcNow.Date).TotalSeconds;
+        // 日本時間の現在時刻
+        DateTime nowInJapanTime = DateTime.UtcNow.AddHours(_timeOffsetByHour);
+
+        // 日本時間のその日の午前0時
+        DateTime todayInJapanTime = nowInJapanTime.Date;
+
+        // 午前0時からの経過秒数を計算 (0～86399)
+        int uniqueId = (int)(nowInJapanTime - todayInJapanTime).TotalSeconds;
 
         string newId = uniqueId.ToString("D5"); // 5桁のゼロ埋め
         _roomIdText.text = newId;
@@ -104,8 +113,11 @@ public class RoomUIManager : MonoBehaviour
         // ボタンが有効な状態で押された場合のみ処理を実行
         if (IsValidJoinId(inputId))
         {
-            // 今日の0時からの秒数を計算
-            int secondsSinceEpochToday = (int)(DateTime.UtcNow.Date - new DateTime(1970, 1, 1)).TotalSeconds;
+            // 日本時間の今日の日付を基準にする
+            DateTime todayInJapanTime = DateTime.UtcNow.AddHours(_timeOffsetByHour).Date;
+
+            // 日本時間の今日の午前0時からの秒数を計算
+            int secondsSinceEpochToday = (int)(todayInJapanTime - new DateTime(1970, 1, 1)).TotalSeconds;
 
             // ユーザーの入力値に今日の秒数を足して、一意なセッションIDを生成
             int userValue = int.Parse(inputId);
@@ -132,8 +144,11 @@ public class RoomUIManager : MonoBehaviour
             return;
         }
 
-        // 今日の0時からの秒数を計算
-        int secondsSinceEpochToday = (int)(DateTime.UtcNow.Date - new DateTime(1970, 1, 1)).TotalSeconds;
+        // 日本時間の今日の日付を基準にする
+        DateTime todayInJapanTime = DateTime.UtcNow.AddHours(_timeOffsetByHour).Date;
+
+        // 日本時間の今日の午前0時からの秒数を計算
+        int secondsSinceEpochToday = (int)(todayInJapanTime - new DateTime(1970, 1, 1)).TotalSeconds;
 
         // 生成された値に今日の秒数を足して、一意なセッションIDを生成
         string sessionId = (secondsSinceEpochToday + generatedValue).ToString();

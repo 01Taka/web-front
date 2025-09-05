@@ -42,6 +42,7 @@ public class UIComplexAnimator : MonoBehaviour
     private CanvasGroup canvasGroup;
     private Vector2 originalAnchoredPosition;
     private bool _isShowing = false;
+    private float _rightEdgeX;
 
     // 現在UIが表示中かどうかを外部から確認できるプロパティ
     public bool IsShowing => _isShowing;
@@ -61,8 +62,11 @@ public class UIComplexAnimator : MonoBehaviour
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
 
+        _rightEdgeX = GetElementRightEdgeX();
+
         // 元の位置を保存
         originalAnchoredPosition = rectTransform.anchoredPosition;
+
 
         // 初期状態を設定
         if (initialState == InitialState.Show)
@@ -92,8 +96,7 @@ public class UIComplexAnimator : MonoBehaviour
             {
                 case AnimationType.SlideInFromLeft:
                     // 画面左端の外側に配置
-                    float startX = GetElementRightEdgeX();
-                    rectTransform.anchoredPosition = new Vector2(startX, rectTransform.anchoredPosition.y);
+                    rectTransform.anchoredPosition = new Vector2(_rightEdgeX, rectTransform.anchoredPosition.y);
                     break;
                 case AnimationType.FadeIn:
                     // 透明度を0に設定
