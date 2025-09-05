@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 7f2c4398394274949a00cd1245ad9cd4
+guid: f2d6764ad51a65242a94a63c62317a6b
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8251820696166363594
-    second: rectangle_shadow_4vs19_0
+      213: -2068986785738439003
+    second: hexagon_barrier_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -139,13 +139,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: rectangle_shadow_4vs19_0
+      name: hexagon_barrier_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 304
-        height: 64
+        width: 512
+        height: 512
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -154,8 +154,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 63e89cefbc4ab7d80800000000000000
-      internalID: -8251820696166363594
+      spriteID: 5a64517fa7b7943e0800000000000000
+      internalID: -2068986785738439003
       vertices: []
       indices: 
       edges: []

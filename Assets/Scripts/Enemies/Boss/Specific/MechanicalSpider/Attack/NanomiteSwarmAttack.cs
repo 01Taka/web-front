@@ -22,6 +22,7 @@ public class NanomiteSwarmAttack : BossAttackBase
     private float _explosionDuration = 3f;
     [SerializeField]
     private Transform[] _bomParents;
+    [SerializeField] private Transform _bomMoveTarget;
 
     /// <summary>
     /// 攻撃ポートから対応する親インデックスを返します。
@@ -42,10 +43,8 @@ public class NanomiteSwarmAttack : BossAttackBase
         }
     }
 
-    public override void OnBeginPreparation(BossAttackContext context)
+    public override void ExecuteAttack(BossAttackContext context)
     {
-        base.OnBeginPreparation(context);
-
         int parentIndex = ConvertToPortIndex(context.SinglePort);
         if (parentIndex < 0 || parentIndex >= _bomParents.Length || _bomPrefab == null)
         {
@@ -60,6 +59,8 @@ public class NanomiteSwarmAttack : BossAttackBase
         {
             SpawnBom(parentTransform, context.BossManager.Position, context);
         }
+
+        // アニメーションは自動で終わり、ダメージは爆弾が与えるのでbaseは実行しない
     }
 
     /// <summary>
@@ -81,7 +82,7 @@ public class NanomiteSwarmAttack : BossAttackBase
         // MechanicalSpiderBomコンポーネントを取得し、アクティベート
         if (bomInstance.TryGetComponent<MechanicalSpiderBom>(out var bomComponent))
         {
-            bomComponent.Activate(_explosionDuration, context.Pattern.CancelDamageThreshold,  bossPosition, () => DamagePlayer(context), () => DamageBoss(context));
+            bomComponent.Activate(_explosionDuration, context.Pattern.CancelDamageThreshold, _bomMoveTarget.position,  bossPosition, () => DamagePlayer(context), () => DamageBoss(context));
         }
         else
         {

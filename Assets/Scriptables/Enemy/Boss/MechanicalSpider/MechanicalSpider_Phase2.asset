@@ -18,5 +18,5 @@ MonoBehaviour:
   maxAttackInterval: 3
   firingPorts: 01000000020000000300000004000000
   attackPatterns:
-  - {fileID: 11400000, guid: 109d4b4c7e313c24aa005a02de6900cc, type: 2}
   - {fileID: 11400000, guid: e76aef05a6018094e8fb82000d254ae4, type: 2}
+  - {fileID: 11400000, guid: 109d4b4c7e313c24aa005a02de6900cc, type: 2}

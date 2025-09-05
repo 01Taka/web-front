@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
+using static PunchBarrierEffectManager;
 
 [CreateAssetMenu(menuName = "Boss/MechanicalSpider/LegSettings")]
 public class MechanicalSpiderLegSettings : ScriptableObject
@@ -11,9 +13,14 @@ public class MechanicalSpiderLegSettings : ScriptableObject
     public float idleSpeed = 2f;
 
     [Header("Punch Motion")]
-    public float punchLiftHeight = 1.0f;
-    public float punchLiftDuration = 0.5f;
-    public float punchMoveDuration = 0.2f;
+    public float PunchLiftHeight = 1.0f;
+    public float PunchLiftDuration = 0.5f;
+    public List<PunchPhaseTimings> PunchPhases = new List<PunchPhaseTimings>();
+    public float PunchReturningDuration = 0.5f;
+    public Vector3 PunchHoldOffset = Vector3.zero;
+    public float PunchShakeStrength = 0.1f;
+    public int PunchShaleVibrato = 20;
+    public float BarrierDeploymentDelay = 0.1f;
 
     [Header("Hold Motion")]
     public float holdJitterAmplitude = 0.05f;
@@ -29,7 +36,8 @@ public class MechanicalSpiderLegSettings : ScriptableObject
     public float returningFromSwingDuration = 0.5f;
 
     [Header("Audio Clips")]
-    public AudioClip punchStartClip;
-    public AudioClip punchImpactClip;
+    public AudioClip PunchStartClip;
+    public AudioClip PunchImpactClip;
     public AudioClip swingStartClip;
+    public AudioClip PunchImpactToBarrierClip;
 }

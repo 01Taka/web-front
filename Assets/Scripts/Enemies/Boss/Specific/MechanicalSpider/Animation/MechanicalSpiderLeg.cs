@@ -1,21 +1,22 @@
+using DG.Tweening;
+using TMPro;
 using UnityEngine;
 
 public class MechanicalSpiderLeg
 {
-    private enum State { Idle, Lifting, Punching, Holding, Returning, SwingWindup, SwingWindupHold, Swinging, SwingingHold, ReturningFromSwing }
+    private enum State { Idle, Swinging, ReturningFromSwing }
 
     private State currentState = State.Idle;
+    private readonly MultiStagePunchHandler _punchHandler;
 
     private readonly Transform ikTarget;
     private readonly MechanicalSpiderLegSettings settings;
     private readonly bool isRightLeg;
 
     private Vector3 basePosition;
-    private Vector3 punchTarget;
     private float timer;
 
-    private Vector3 startPosition;
-    private Vector3 swingTargetPosition;
+    public Vector3 BasePosition => basePosition;
 
     public MechanicalSpiderLeg(Transform target, MechanicalSpiderLegSettings settings, bool isRightLeg)
     {
@@ -23,44 +24,18 @@ public class MechanicalSpiderLeg
         this.settings = settings;
         this.isRightLeg = isRightLeg;
         this.basePosition = target.localPosition;
+        this._punchHandler = new MultiStagePunchHandler(this);
     }
 
     public void UpdateLeg()
     {
+        // Swing logic is now handled by a single DOTween sequence,
+        // so no state-based Update logic is needed for it.
         timer += Time.deltaTime;
 
-        switch (currentState)
+        if (currentState == State.Idle && IsPunchComplete())
         {
-            case State.Idle:
-                UpdateIdle();
-                break;
-            case State.Lifting:
-                UpdateLifting();
-                break;
-            case State.Punching:
-                UpdatePunching();
-                break;
-            case State.Holding:
-                UpdateHolding();
-                break;
-            case State.Returning:
-                UpdateReturning();
-                break;
-            case State.SwingWindup:
-                UpdateSwingWindup();
-                break;
-            case State.SwingWindupHold:
-                UpdateSwingWindupHold();
-                break;
-            case State.Swinging:
-                UpdateSwinging();
-                break;
-            case State.SwingingHold:
-                UpdateSwingingHold();
-                break;
-            case State.ReturningFromSwing:
-                UpdateReturningFromSwing();
-                break;
+            UpdateIdle();
         }
     }
 
@@ -75,155 +50,126 @@ public class MechanicalSpiderLeg
         ikTarget.localPosition = basePosition + offset;
     }
 
-    private void UpdateLifting()
+    // --- Public Methods for External Control ---
+    public void StartPunchWindup(float duration)
     {
-        float t = Mathf.Clamp01(timer / settings.punchLiftDuration);
-        Vector3 targetPos = basePosition + Vector3.up * settings.punchLiftHeight;
-        ikTarget.localPosition = Vector3.Lerp(startPosition, targetPos, t);
-
-        if (t >= 1.0f)
-        {
-            // Play sound at the start of the punch.
-            if (settings.punchStartClip != null && SoundManager.Instance != null)
-            {
-                SoundManager.Instance.PlayEffect(settings.punchStartClip);
-            }
-
-            currentState = State.Punching;
-            timer = 0f;
-            startPosition = ikTarget.localPosition;
-        }
+        Vector3 targetPosition = ikTarget.localPosition;
+        targetPosition.y = ikTarget.localPosition.y + settings.PunchLiftHeight;
+        _punchHandler.Windup(targetPosition, duration);
     }
 
-    private void UpdatePunching()
+    /// <summary>
+    /// パンチシーケンスを開始し、振りかぶりから目標位置に移動します。
+    /// </summary>
+    /// <param name="targetWorldPosition">パンチの目標位置（ワールド座標）</param>
+    /// <param name="duration">パンチにかかる時間</param>
+    public void StartPunchingSequence(Vector3 targetWorldPosition, float duration)
     {
-        float t = Mathf.Clamp01(timer / settings.punchMoveDuration);
-        ikTarget.localPosition = Vector3.Lerp(startPosition, punchTarget, t);
-
-        if (t >= 1.0f)
-        {
-            // Play sound when the punch reaches its destination.
-            if (settings.punchImpactClip != null && SoundManager.Instance != null)
-            {
-                SoundManager.Instance.PlayEffect(settings.punchImpactClip);
-            }
-
-            currentState = State.Holding;
-            timer = 0f;
-        }
+        Vector3 localTarget = ikTarget.parent.InverseTransformPoint(targetWorldPosition);
+        _punchHandler.MoveToTarget(localTarget, duration);
     }
 
-    private void UpdateHolding()
+    public void StartPunchShaking(float duration)
     {
-        float direction = isRightLeg ? 1f : -1f;
-        Vector3 jitter = new Vector3(
-            Mathf.Sin(timer * settings.holdJitterSpeed) * settings.holdJitterAmplitude * direction,
-            0f,
-            0f
-        );
-        ikTarget.localPosition = punchTarget + jitter;
+        Vector3 targetPosition = ikTarget.localPosition;
+        targetPosition.y = ikTarget.localPosition.y + settings.PunchLiftHeight;
+        _punchHandler.StartShake(targetPosition, duration, settings.PunchShakeStrength, settings.PunchShaleVibrato);
     }
 
-    private void UpdateReturning()
+    /// <summary>
+    /// 現在のパンチシーケンスを完了し、元の位置に戻ります。
+    /// </summary>
+    /// <param name="duration">戻るのにかかる時間</param>
+    public void ReturnToIdleFromPunch(float duration)
     {
-        float t = Mathf.Clamp01(timer / settings.returningMoveDuration);
-        ikTarget.localPosition = Vector3.Lerp(startPosition, basePosition, t);
-
-        if (t >= 1.0f)
-        {
-            ResetToIdle();
-        }
+        _punchHandler.ReturnToIdle(duration);
     }
 
-    private void UpdateSwingWindup()
-    {
-        float t = Mathf.Clamp01(timer / settings.swingWindupDuration);
-        float direction = isRightLeg ? 1f : -1f;
-        Vector3 windupTarget = basePosition + new Vector3(-direction * settings.swingWindupDistance, 0f, 0f);
-        ikTarget.localPosition = Vector3.Lerp(startPosition, windupTarget, t);
-
-        if (t >= 1.0f)
-        {
-            currentState = State.SwingWindupHold;
-            timer = 0f;
-            startPosition = ikTarget.localPosition; // 次の状態のために現在の位置を保存
-        }
-    }
-
-    private void UpdateSwingWindupHold()
-    {
-        if (timer >= settings.swingWindupHoldDuration)
-        {
-            // Play sound at the start of the swing.
-            if (settings.swingStartClip != null && SoundManager.Instance != null)
-            {
-                SoundManager.Instance.PlayEffect(settings.swingStartClip);
-            }
-
-            currentState = State.Swinging;
-            timer = 0f;
-            startPosition = ikTarget.localPosition;
-        }
-    }
-
-
-    private void UpdateSwinging()
-    {
-        float t = Mathf.Clamp01(timer / settings.swingDuration);
-        float direction = isRightLeg ? 1f : -1f;
-        Vector3 finalSwingTarget = basePosition + new Vector3(direction * settings.swingDistance, 0f, 0f);
-        ikTarget.localPosition = Vector3.Lerp(startPosition, finalSwingTarget, t);
-
-        if (t >= 1.0f)
-        {
-            currentState = State.SwingingHold;
-            timer = 0f;
-        }
-    }
-
-    private void UpdateSwingingHold()
-    {
-        if (timer >= settings.swingHoldDuration)
-        {
-            currentState = State.ReturningFromSwing;
-            timer = 0f;
-            startPosition = ikTarget.localPosition;
-        }
-    }
-
-    private void UpdateReturningFromSwing()
-    {
-        float t = Mathf.Clamp01(timer / settings.returningFromSwingDuration);
-        ikTarget.localPosition = Vector3.Lerp(startPosition, basePosition, t);
-        if (t >= 1.0f)
-        {
-            ResetToIdle();
-        }
-    }
-
-    public void StartPunch(Vector3 targetWorldPosition)
-    {
-        if (currentState != State.Idle) return;
-        punchTarget = ikTarget.parent.InverseTransformPoint(targetWorldPosition);
-        currentState = State.Lifting;
-        timer = 0f;
-        startPosition = ikTarget.localPosition;
-    }
-
-    public void EndPunchAndReturn()
-    {
-        if (currentState != State.Holding && currentState != State.Punching) return;
-        currentState = State.Returning;
-        timer = 0f;
-        startPosition = ikTarget.localPosition;
-    }
-
+    /// <summary>
+    /// スイングシーケンス全体を開始します。
+    /// </summary>
     public void StartSwing()
     {
         if (currentState != State.Idle) return;
-        currentState = State.SwingWindup;
-        timer = 0f;
-        startPosition = ikTarget.localPosition;
+
+        // Start the combined swing sequence
+        Vector3 windupTarget = basePosition + new Vector3(-(isRightLeg ? 1f : -1f) * settings.swingWindupDistance, 0f, 0f);
+        Vector3 finalSwingTarget = basePosition + new Vector3((isRightLeg ? 1f : -1f) * settings.swingDistance, 0f, 0f);
+
+        // Sequence creation
+        var sequence = DOTween.Sequence();
+
+        // 1. Windup
+        sequence.Append(DOTween.To(() => ikTarget.localPosition,
+                pos => ikTarget.localPosition = pos,
+                windupTarget,
+                settings.swingWindupDuration)
+            .SetEase(Ease.OutQuad));
+
+        // 2. Windup Hold
+        sequence.AppendInterval(settings.swingWindupHoldDuration);
+
+        // 3. Swinging
+        sequence.Append(DOTween.To(() => ikTarget.localPosition,
+                pos => ikTarget.localPosition = pos,
+                finalSwingTarget,
+                settings.swingDuration)
+            .SetEase(Ease.InSine)
+            .OnStart(() =>
+            {
+                if (settings.swingStartClip != null && SoundManager.Instance != null)
+                {
+                    SoundManager.Instance.PlayEffect(settings.swingStartClip);
+                }
+            }));
+
+        // 4. Swinging Hold
+        sequence.AppendInterval(settings.swingHoldDuration);
+
+        // 5. Return to Idle
+        sequence.Append(DOTween.To(() => ikTarget.localPosition,
+                pos => ikTarget.localPosition = pos,
+                basePosition,
+                settings.returningFromSwingDuration)
+            .SetEase(Ease.OutSine));
+
+        // On complete, reset to Idle state
+        sequence.OnComplete(() => ResetToIdle());
+
+        // Set the state to Swinging as soon as the sequence starts
+        currentState = State.Swinging;
+    }
+
+    // --- Public Helper Methods for Handlers ---
+
+    public Transform GetIKTargetParent()
+    {
+        return ikTarget.parent;
+    }
+
+    public Vector3 GetIKTargetLocalPosition()
+    {
+        return ikTarget.localPosition;
+    }
+
+    public void SetIKTargetLocalPosition(Vector3 newPosition)
+    {
+        ikTarget.localPosition = newPosition;
+    }
+
+    public MechanicalSpiderLegSettings GetSettings()
+    {
+        return settings;
+    }
+
+    public bool IsPuncnHolding()
+    {
+        return _punchHandler.IsHolding();
+    }
+
+    public bool IsPunchComplete()
+    {
+        return _punchHandler.IsComplete();
     }
 
     public void ResetToIdle()

@@ -15,4 +15,6 @@ MonoBehaviour:
   id: 1
   bossInstance: {fileID: 5641419270270395162, guid: ca8d66d59a8ff6d4dbab83b983e413e1, type: 3}
   phaseSettings:
+  - {fileID: 11400000, guid: 19e80f3e6999df94a86d9422991336b8, type: 2}
   - {fileID: 11400000, guid: 4a99026a0d50eb04a962bfa7aad8a2b7, type: 2}
+  - {fileID: 11400000, guid: f3726f665cf879a4a8bc16ad52b7bc34, type: 2}

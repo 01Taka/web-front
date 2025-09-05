@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: e41c40d5d325e8348b06766528b374eb
+guid: a3ec791d068805d47a0d924d592f84db
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4101578874495481150
-    second: rectangle_body_4vs19_0
+      213: 4404015598580091926
+    second: explosion_blue_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -139,13 +139,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: rectangle_body_4vs19_0
+      name: explosion_blue_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 11
         y: 0
-        width: 304
-        height: 64
+        width: 493
+        height: 512
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -154,8 +154,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2ca4377aeb34417c0800000000000000
-      internalID: -4101578874495481150
+      spriteID: 61c45aa7ad43e1d30800000000000000
+      internalID: 4404015598580091926
       vertices: []
       indices: 
       edges: []

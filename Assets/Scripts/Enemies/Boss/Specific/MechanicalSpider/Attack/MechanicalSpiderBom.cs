@@ -1,76 +1,36 @@
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
+using System.Collections.Generic;
 
 public class MechanicalSpiderBom : MonoBehaviour, IDamageable
 {
     // --- フィールド ---
-    [Header("回転設定")]
-    [Tooltip("Z軸周りの回転速度 (度/秒)")]
+    [Tooltip("このスパイダーの設定を定義するScriptableObject")]
     [SerializeField]
-    private float _rotationSpeed = 100f;
+    private MechanicalSpiderBomSettings _settings;
 
-    [Header("点滅設定")]
-    [Tooltip("点滅の規定色")]
-    [SerializeField]
-    private Color _blinkColor = Color.red;
-    [Tooltip("点滅の開始頻度 (秒)")]
-    [SerializeField]
-    private float _startBlinkInterval = 0.5f;
-    [Tooltip("点滅の終了頻度 (秒)")]
-    [SerializeField]
-    private float _endBlinkInterval = 0.1f;
-    [Header("スプライト設定")]
+    [Header("イベントと参照")]
     [SerializeField]
     private SpriteRenderer _spriteRenderer;
-    private Color _originalColor;
-
-    [Header("爆発設定")]
-    [SerializeField]
-    private AudioClip _bomClip;
     [Tooltip("爆発時に呼ばれるイベント")]
     [SerializeField]
     private UnityEvent _onExplosion;
-    private float _explosionTime;
-    private float _timeElapsed;
-
-    // 新しいフィールド: 爆発プレハブ
-    [Tooltip("爆発時に生成するプレハブ")]
-    [SerializeField]
-    private GameObject _explosionPrefab;
-
-    // 新しいフィールド: 爆発までの時間ランダム化
-    [Tooltip("爆発までの時間に加算するランダム値の範囲 (秒)")]
-    [SerializeField]
-    private float _explosionTimeRandomRange = 0.5f;
-
-    // 新しいフィールド: 爆発位置ランダム化
-    [Tooltip("爆発時にターゲット座標からランダムにずらす半径")]
-    [SerializeField]
-    private float _explosionRadius = 0.5f;
-
-    // 外部から渡されたリスナーを保持するためのプライベートフィールド
-    private UnityAction _explosionAction;
-
-    // 新しいフィールド
-    [Header("追跡とHP設定")]
-    [Tooltip("追跡速度")]
-    [SerializeField]
-    private float _seekSpeed = 5f;
-
-    private Vector2 _targetPosition;
-
-    // 新しいUnityEvent
-    [Header("目標到達イベント")]
     [Tooltip("目標に到達した時に呼ばれるイベント")]
     [SerializeField]
     private UnityEvent _onTargetReached;
 
-    // 外部から渡されたリスナーを保持するためのプライベートフィールド
+    private Color _originalColor = Color.white;
+    private HealthManager _healthManager;
+    private UnityAction _explosionAction;
     private UnityAction _targetReachedAction;
 
-    // HealthManagerのインスタンス
-    private HealthManager _healthManager;
+    private float _baseExplosionTime;
+    private float _explosionTime;
+    private float _timeElapsed;
+    private Vector2 _targetPosition;
+    private Vector2 _targetPositionOnDestroyed;
+    private bool _isDestroyed = false;
 
     // --- メソッド ---
 
@@ -79,165 +39,150 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
     /// </summary>
     /// <param name="explosionDuration">爆発までの時間</param>
     /// <param name="maxHealth">最大HP</param>
-    /// <param name="target">追跡目標</param>
+    /// <param name="target">破壊前の追跡目標</param>
+    /// <param name="targetOnDestroyed">破壊後の追跡目標</param>
     /// <param name="onExplosionAction">爆発時に実行されるアクション</param>
     /// <param name="onTargetReachedAction">目標到達時に実行されるアクション</param>
-    public void Activate(float explosionDuration, float maxHealth, Vector2 target,
+    public void Activate(float explosionDuration, float maxHealth, Vector2 target, Vector2 targetOnDestroyed,
                          UnityAction onExplosionAction, UnityAction onTargetReachedAction)
     {
-        // 爆発までの時間にランダムな値を加算
-        _explosionTime = explosionDuration + Random.Range(0, _explosionTimeRandomRange);
+        _baseExplosionTime = explosionDuration;
+        _explosionTime = explosionDuration + Random.Range(0, _settings.ExplosionTimeRandomRange);
         _targetPosition = target;
+        _targetPositionOnDestroyed = targetOnDestroyed;
         _timeElapsed = 0f;
 
-        _healthManager.SetMaxHealth(maxHealth);
-
-        // リスナーをフィールドに保持
         _explosionAction = onExplosionAction;
         _targetReachedAction = onTargetReachedAction;
 
-        // 外部から渡されたリスナーをイベントに登録
         _onExplosion.AddListener(_explosionAction);
         _onTargetReached.AddListener(_targetReachedAction);
 
-        // 点滅と爆発のコルーチンを開始
-        StartCoroutine(BlinkEffectCoroutine());
-        StartCoroutine(ExplosionCoroutine());
+        _healthManager.SetMaxHealth(maxHealth);
+
+        StartCoroutine(StartTimerAndEffects());
     }
 
     private void Awake()
     {
-        // HealthManagerを初期化
-        _healthManager = new HealthManager(100);
-        // HPが0になったらターゲットを追跡する処理を登録
-        _healthManager.AddOnDeathAction(StartSeeking);
-    }
-
-    private void Start()
-    {
         if (_spriteRenderer != null)
         {
             _originalColor = _spriteRenderer.color;
+
+            _healthManager = new HealthManager(100);
+            _healthManager.AddOnDeathAction(StartSeekingOnDestroyed);
         }
     }
 
     private void Update()
     {
-        // Z軸周りの回転
-        transform.Rotate(0, 0, _rotationSpeed * Time.deltaTime);
-
-        // 追跡状態の場合、ターゲットに向かって移動
-        if (!_healthManager.IsAlive)
+        if (!_isDestroyed)
         {
-            // ターゲットが存在する場合
-            if (_targetPosition != null)
+            transform.Rotate(0, 0, _settings.RotationSpeed * Time.deltaTime);
+            transform.position = Vector2.MoveTowards(transform.position, _targetPosition, _settings.SeekSpeed * Time.deltaTime);
+        }
+        else
+        {
+            transform.Rotate(0, 0, _settings.RotationSpeedOnDestroyed * Time.deltaTime);
+            transform.position = Vector2.MoveTowards(transform.position, _targetPositionOnDestroyed, _settings.SeekSpeedOnDestroyed * Time.deltaTime);
+
+            if (Vector2.Distance(transform.position, _targetPositionOnDestroyed) < 0.1f)
             {
-                // ターゲットに向かって移動
-                transform.position = Vector2.MoveTowards(transform.position, _targetPosition, _seekSpeed * Time.deltaTime);
-
-                // ターゲットに十分に近づいたらイベントを起動し、オブジェクトを破壊
-                if (Vector2.Distance(transform.position, _targetPosition) < 0.1f)
-                {
-                    // 爆発位置にランダムなオフセットを加える
-                    Vector3 explosionPosition = (Vector3)_targetPosition + (Vector3)Random.insideUnitCircle * _explosionRadius;
-
-                    // 爆発プレハブを生成
-                    if (_explosionPrefab != null)
-                    {
-                        Instantiate(_explosionPrefab, explosionPosition, Quaternion.identity);
-                    }
-
-                    _onTargetReached.Invoke();
-                    PlayExplosionSound();
-                    Destroy(gameObject);
-                }
+                InstantiateExplosion(_settings.ExplosionPrefabOnDestroy, _settings.ExplosionClipOnDestroy, _targetPositionOnDestroyed);
+                _onTargetReached.Invoke();
+                Destroy(gameObject);
             }
         }
     }
 
-    private void PlayExplosionSound()
-    {
-        SoundManager.Instance.PlayEffect(_bomClip);
-    }
-
     /// <summary>
-    /// ダメージを受けるメソッド
+    /// 爆発エフェクトとサウンドを生成する汎用メソッド
     /// </summary>
-    /// <param name="amount">ダメージ量</param>
-    public void TakeDamage(float amount)
+    private void InstantiateExplosion(GameObject explosionPrefab, AudioClip explosionClip, Vector2 position)
     {
-        
-        _healthManager.TakeDamage(amount);
-    }
-
-    private void StartSeeking()
-    {
-        // 爆発のコルーチンを停止
-        StopCoroutine(ExplosionCoroutine());
-        // 点滅のコルーチンを停止
-        StopCoroutine(BlinkEffectCoroutine());
-        // 視覚的な変化
-        _spriteRenderer.color = _blinkColor;
-        _rotationSpeed = 300f; // 回転速度を上げるなど
-    }
-
-    /// <summary>
-    /// 点滅エフェクトを制御するコルーチン。
-    /// </summary>
-    private IEnumerator BlinkEffectCoroutine()
-    {
-        // SpriteRendererが存在しない場合は終了
-        if (_spriteRenderer == null) yield break;
-
-        while (_timeElapsed < _explosionTime && _healthManager.IsAlive)
+        if (explosionPrefab != null)
         {
-            // 経過時間に基づいて点滅頻度を計算
-            float normalizedTime = _timeElapsed / _explosionTime;
-            float currentBlinkInterval = Mathf.Lerp(_startBlinkInterval, _endBlinkInterval, normalizedTime);
+            Vector3 explosionPosition = (Vector3)position + (Vector3)Random.insideUnitCircle * _settings.ExplosionRadius;
+            Instantiate(explosionPrefab, explosionPosition, Quaternion.identity);
+        }
 
-            // 色を_blinkColorに変更
-            _spriteRenderer.color = _blinkColor;
-            yield return new WaitForSeconds(currentBlinkInterval);
-
-            // 色を白(#FFFFFF)に変更
-            _spriteRenderer.color = _originalColor;
-            yield return new WaitForSeconds(currentBlinkInterval);
+        if (explosionClip != null)
+        {
+            SoundManager.Instance.PlayEffect(explosionClip);
         }
     }
 
-    /// <summary>
-    /// 爆発までの時間をカウントダウンし、イベントを起動するコルーチン。
-    /// </summary>
-    private IEnumerator ExplosionCoroutine()
+    public void TakeDamage(float amount)
     {
-        // 経過時間をカウント
+        _healthManager.TakeDamage(amount);
+        if (_healthManager.CurrentHealth == 0)
+        {
+            StartSeekingOnDestroyed();
+        }
+    }
+
+    private void StartSeekingOnDestroyed()
+    {
+        _isDestroyed = true;
+        StopAllCoroutines();
+        _spriteRenderer.color = _settings.BlinkColor;
+    }
+
+    private IEnumerator StartTimerAndEffects()
+    {
+        if (_spriteRenderer == null) yield break;
+
+        _timeElapsed = 0f;
+        int nextBlinkIndex = 0;
+        List<float> blinkTimings = CalculateBlinkTimings();
+
         while (_timeElapsed < _explosionTime && _healthManager.IsAlive)
         {
             _timeElapsed += Time.deltaTime;
+
+            if (nextBlinkIndex < blinkTimings.Count && _timeElapsed >= blinkTimings[nextBlinkIndex])
+            {
+                _spriteRenderer.color = (_spriteRenderer.color == _originalColor) ? _settings.BlinkColor : _originalColor;
+                nextBlinkIndex++;
+            }
+
             yield return null;
         }
 
-        // 爆弾の体力が残っている場合は爆発
         if (_healthManager.IsAlive)
         {
-            // 爆発プレハブを生成
-            if (_explosionPrefab != null)
-            {
-                Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
-            }
-
-            PlayExplosionSound();
+            InstantiateExplosion(_settings.ExplosionPrefab, _settings.BomClip, transform.position);
             _onExplosion.Invoke();
-            
             Destroy(gameObject);
         }
     }
 
-    // オブジェクトが破棄されるときに呼ばれる
+    /// <summary>
+    /// 点滅タイミングを事前に計算するヘルパーメソッド
+    /// </summary>
+    private List<float> CalculateBlinkTimings()
+    {
+        List<float> timings = new List<float>();
+        float currentTime = 0f;
+
+        while (currentTime < _baseExplosionTime)
+        {
+            float normalizedTime = currentTime / _baseExplosionTime;
+            float blinkInterval = Mathf.Lerp(_settings.StartBlinkInterval, _settings.EndBlinkInterval, normalizedTime);
+
+            timings.Add(currentTime);
+            currentTime += blinkInterval;
+            if (currentTime < _baseExplosionTime)
+            {
+                timings.Add(currentTime);
+                currentTime += blinkInterval;
+            }
+        }
+        return timings;
+    }
+
     private void OnDestroy()
     {
-        // UnityEventからリスナーを解除
-        // Nullチェックは、オブジェクトが先に破棄される場合があるため必須
         if (_onExplosion != null && _explosionAction != null)
         {
             _onExplosion.RemoveListener(_explosionAction);
@@ -248,7 +193,6 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
             _onTargetReached.RemoveListener(_targetReachedAction);
         }
 
-        // HealthManagerのリスナーも解除
         if (_healthManager != null)
         {
             _healthManager.ClearEvents();

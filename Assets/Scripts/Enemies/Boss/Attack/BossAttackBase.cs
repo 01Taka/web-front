@@ -12,30 +12,19 @@ public abstract class BossAttackBase : MonoBehaviour, IBossAttack
     // 抽象メソッドとして定義し、子クラスでの実装を強制します。
     public virtual void OnBeginPreparation(BossAttackContext context)
     {
-        context.AnimationController.StartAnimation(CreateBossAnimationControllerContext(context));
+        StartAnimation(context);
     }
 
     public virtual void ExecuteAttack(BossAttackContext context)
     {
-        if (context.PlayerDamageable != null)
-        {
-            float damageAmount = context.Pattern.BaseDamage;
-            context.PlayerDamageable.TakeDamage(damageAmount);
-        }
-
-        context.AnimationController.EndAnimation(CreateBossAnimationControllerContext(context));
+        DamagePlayer(context);
+        EndAnimation(context);
     }
 
     public virtual void OnCanceledAttack(BossAttackContext context)
     {
-        // ボス自身にダメージを与える
-        if (context.BossManager != null)
-        {
-            float selfDamage = context.Pattern.CancelSelfInflictedDamage;
-            context.BossManager.TakeDamage(selfDamage);
-        }
-
-        context.AnimationController.EndAnimation(CreateBossAnimationControllerContext(context));
+        DamageBoss(context);
+        EndAnimation(context);
     }
 
     protected void DamageBoss(BossAttackContext context)
@@ -52,6 +41,16 @@ public abstract class BossAttackBase : MonoBehaviour, IBossAttack
         {
             context.PlayerDamageable.TakeDamage(context.Pattern.BaseDamage);
         }
+    }
+
+    protected void StartAnimation(BossAttackContext context)
+    {
+        context.AnimationController.StartAnimation(CreateBossAnimationControllerContext(context));
+    }
+
+    protected void EndAnimation(BossAttackContext context)
+    {
+        context.AnimationController.EndAnimation(CreateBossAnimationControllerContext(context));
     }
 
     protected BossAnimationControllerContext CreateBossAnimationControllerContext(BossAttackContext context)

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5c18bcb3c4be6942964c3007fa2ac29, type: 3}
+  m_Name: MechanicalSpiderBomSettings
+  m_EditorClassIdentifier: 
+  RotationSpeed: 100
+  RotationSpeedOnDestroyed: 300
+  BlinkColor: {r: 1, g: 0.53396225, b: 0.53396225, a: 1}
+  StartBlinkInterval: 0.5
+  EndBlinkInterval: 0.1
+  BomClip: {fileID: 8300000, guid: 1575321c545a5c4408d577ff5637e2c7, type: 3}
+  ExplosionPrefab: {fileID: 2250305288276729591, guid: e63d87553f9f86f439dd6ba1e7d64a47, type: 3}
+  ExplosionClipOnDestroy: {fileID: 8300000, guid: 60cd599ccc4075e46bef31375cded855, type: 3}
+  ExplosionPrefabOnDestroy: {fileID: 3668804249620944223, guid: d365ae20269bc4b4d99628badaf0dd4c, type: 3}
+  ExplosionTimeRandomRange: 0.5
+  ExplosionRadius: 0.5
+  SeekSpeed: 0.5
+  SeekSpeedOnDestroyed: 20
