@@ -18,6 +18,8 @@ public interface IBossAttack
 {
     public abstract BossAttackType AttackType { get; }
 
+    void InitializeAttackCallbacks(IBossAttacdkLogicCallbasks callbasks);
+
     /// <summary>
     /// 攻撃の準備開始時に呼び出される
     /// </summary>
@@ -32,6 +34,16 @@ public interface IBossAttack
     /// 攻撃がキャンセルされた時に呼び出される
     /// </summary>
     void OnCanceledAttack(BossAttackContext context);
+}
+
+public interface IBossAttacdkLogicCallbasks
+{
+    void StartAttack(BossFiringPort portType, AttackPattern pattern);
+    void CancelAttackOnPort(BossFiringPort portType);
+    void ForceExecuteAttack(BossFiringPort portType);
+    void StartUltimateAttack(AttackPattern pattern);
+    void CancelAllAttacks();
+
 }
 
 public interface IBossAttackLogic

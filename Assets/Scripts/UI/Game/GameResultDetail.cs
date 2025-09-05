@@ -26,6 +26,7 @@ public class GameResultDetail : MonoBehaviour
         _scoreTypeText.text = scoreType.ToString();
         _scoreValueText.color = (value >= 0) ? Color.green : Color.red;
         _scoreValueText.text = FormatScoreValue(value);
+        ResetState();
     }
 
     public void PlayAnimation()
@@ -40,6 +41,11 @@ public class GameResultDetail : MonoBehaviour
     public void AnimateWithDelay(float delayTime)
     {
         StartCoroutine(AnimateAfterDelay(delayTime));
+    }
+    
+    public void ResetState()
+    {
+        _animator.SetStateToHide();
     }
 
     /// <summary>

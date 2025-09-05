@@ -79,20 +79,20 @@ public class HordeSpawner : MonoBehaviour
         for (int i = 0; i < _enemiesPerWave; i++)
         {
             Vector3 spawnPos = GetRandomPointOnLine(_startPoint.position, _endPoint.position);
-            GameObject enemy = Instantiate(_enemyPrefab, spawnPos, Quaternion.identity, _parent);
+            GameObject enemyObj = Instantiate(_enemyPrefab, spawnPos, Quaternion.identity, _parent);
 
-            if (enemy.TryGetComponent<HordeEnemy>(out HordeEnemy hordeEnemy))
+            if (enemyObj.TryGetComponent<HordeEnemy>(out HordeEnemy hordeEnemy))
             {
                 hordeEnemy.SetTarget(_target);
                 // Subscribe to the enemy's death action to trigger our own event
-                hordeEnemy.AddDeathAction((DeathReason deathReason) => OnDeathHordeEnemy(enemy, deathReason));
+                hordeEnemy.AddDeathAction((DeathReason deathReason) => OnDeathHordeEnemy(enemyObj, deathReason));
             }
             else
             {
                 Debug.LogWarning("The spawned enemy prefab does not have a HordeEnemy component.");
             }
 
-            _spawnedEnemies.Add(enemy);
+            _spawnedEnemies.Add(enemyObj);
         }
     }
 

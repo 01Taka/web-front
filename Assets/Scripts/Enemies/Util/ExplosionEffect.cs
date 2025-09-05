@@ -1,7 +1,12 @@
 using UnityEngine;
 using System.Collections;
 
-public class ExplosionEffect : MonoBehaviour
+public interface IEffectPrefab
+{
+    void SetSizeRaito(float size);
+}
+
+public class ExplosionEffect : MonoBehaviour, IEffectPrefab
 {
     // --- Fields ---
     [Header("Explosion Settings")]
@@ -12,6 +17,7 @@ public class ExplosionEffect : MonoBehaviour
     [Tooltip("Final scale of the explosion.")]
     [SerializeField]
     private Vector3 _maxScale = new Vector3(2f, 2f, 1f);
+    private float _sizeRaito = 1f;
 
     [Tooltip("Starting color of the explosion.")]
     [SerializeField]
@@ -47,6 +53,11 @@ public class ExplosionEffect : MonoBehaviour
         StartCoroutine(AnimateExplosion());
     }
 
+    public void SetSizeRaito(float size)
+    {
+        _sizeRaito = size;
+    }
+
     /// <summary>
     /// Animates the explosion by scaling and fading the sprite.
     /// </summary>
@@ -67,7 +78,7 @@ public class ExplosionEffect : MonoBehaviour
 
             // Use Vector3.Lerp for scaling and Color.Lerp for color changes.
             // Lerp is a robust and clear way to handle interpolation.
-            transformCache.localScale = Vector3.Lerp(Vector3.zero, _maxScale, t);
+            transformCache.localScale = Vector3.Lerp(Vector3.zero, _maxScale * _sizeRaito, t);
             _spriteRenderer.color = Color.Lerp(_startColor, _endColor, t);
 
             timeElapsed += Time.deltaTime;
@@ -75,7 +86,7 @@ public class ExplosionEffect : MonoBehaviour
         }
 
         // Ensure the final state is reached precisely.
-        transformCache.localScale = _maxScale;
+        transformCache.localScale = _maxScale * _sizeRaito;
         _spriteRenderer.color = _endColor;
 
         // Clean up the object after the animation.

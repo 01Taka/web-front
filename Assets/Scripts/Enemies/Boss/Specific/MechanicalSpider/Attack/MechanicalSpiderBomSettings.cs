@@ -38,4 +38,8 @@ public class MechanicalSpiderBomSettings : ScriptableObject
     public float SeekSpeed = 5f;
     [Tooltip("破壊後の追跡速度")]
     public float SeekSpeedOnDestroyed = 5f;
+
+    [Header("サウンド設定")]
+    public AudioClip HitClip;
+    public float HitClipVolume = 0.5f;
 }

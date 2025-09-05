@@ -52,9 +52,20 @@ public class PunchBarrierEffectManager : MonoBehaviour
         {
             mechanicalSpiderLeg.ReturnToIdleFromPunch(_settings.PunchReturningDuration);
         }
+        StopAllCoroutines();
+        StartCoroutine(RemoveBarriers());
     }
 
-    private IEnumerator ResetBarriers()
+    private IEnumerator RemoveBarriers()
+    {
+        foreach (var barrier in _barriers)
+        {
+            yield return new WaitForSeconds(_settings.BarrierDeploymentDelay);
+            barrier.DestroyBarrier(false);
+        }
+    }
+
+    private IEnumerator DeployBarriers()
     {
         foreach (var barrier in _barriers)
         {
@@ -84,7 +95,6 @@ public class PunchBarrierEffectManager : MonoBehaviour
         // 完了したら元の位置に戻る
         yield return StartCoroutine(ReturnToIdle(mechanicalSpiderLeg));
 
-        Debug.Log("Punch sequence complete.");
         _punchSequenceCoroutine = null;
     }
 
@@ -93,7 +103,7 @@ public class PunchBarrierEffectManager : MonoBehaviour
         mechanicalSpiderLeg.StartPunchWindup(_settings.PunchLiftDuration);
         yield return new WaitForSeconds(_settings.PunchLiftDuration / 2);
         // バリアの遅延展開は待機しない
-        StartCoroutine(ResetBarriers());
+        StartCoroutine(DeployBarriers());
         yield return new WaitForSeconds(_settings.PunchLiftDuration / 2);
         TryPlaySound(_settings.PunchStartClip);
     }
@@ -116,6 +126,7 @@ public class PunchBarrierEffectManager : MonoBehaviour
         for (int j = 0; j < barrier.ColorStepsCount; j++)
         {
             yield return new WaitForSeconds(timePerStep);
+            Debug.Log($"Next {j}");
             barrier.NextStep();
         }
     }

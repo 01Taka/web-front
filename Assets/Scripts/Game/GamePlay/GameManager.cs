@@ -70,11 +70,16 @@ public class GameManager : MonoBehaviour
                 break;
 
             case GameState.Score:
-                if (_scoreBreakdown != null)
-                {
-                    _gameScoreManager.ShowScore(_scoreBreakdown);
-                }
+                ShowScore();
                 break;
+        }
+    }
+
+    public void ShowScore()
+    {
+        if (_scoreBreakdown != null)
+        {
+            _gameScoreManager.ShowScore(_scoreBreakdown);
         }
     }
 

@@ -14,7 +14,7 @@ public class BossPart : MonoBehaviour, IDamageable
     private Coroutine _damageEffectRoutine;
     private Coroutine _vibrationRoutine;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         if (_settings == null)
         {
@@ -38,7 +38,7 @@ public class BossPart : MonoBehaviour, IDamageable
         }
     }
 
-    public void TakeDamage(float amount)
+    public virtual void TakeDamage(float amount)
     {
         // スクリプタブルオブジェクトから設定値を読み込む
         if (_spriteRenderer != null)

@@ -25,3 +25,5 @@ MonoBehaviour:
   ExplosionRadius: 0.5
   SeekSpeed: 0.5
   SeekSpeedOnDestroyed: 20
+  HitClip: {fileID: 8300000, guid: 0b3d63dd6d30e3e4ab246216aa209396, type: 3}
+  HitClipVolume: 0.3

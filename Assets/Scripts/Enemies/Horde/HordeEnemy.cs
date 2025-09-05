@@ -43,6 +43,7 @@ public class HordeEnemy : MonoBehaviour, IDamageable
 
         InitializeHealthManager();
         SetSize(_settings.enemyScale);
+        AddDeathAction(PlayDestoryEffect);
     }
 
     public void AddDeathAction(UnityAction<DeathReason> action)
@@ -89,6 +90,18 @@ public class HordeEnemy : MonoBehaviour, IDamageable
         }
     }
 
+    private void PlayDestoryEffect(DeathReason deathReason)
+    {
+        if (_settings.DestoryEffectPrefab && deathReason == DeathReason.PlayerDefeated)
+        {
+            GameObject effectObj = Instantiate(_settings.DestoryEffectPrefab, transform.position, Quaternion.identity);
+            if (effectObj.TryGetComponent(out IEffectPrefab effect))
+            {
+                effect.SetSizeRaito(_settings.DestoryEffectSize);
+            }
+        }
+    }
+
     /// <summary>
     /// ターゲットの方向に向かって体を回転させる。
     /// </summary>
@@ -120,7 +133,7 @@ public class HordeEnemy : MonoBehaviour, IDamageable
         // ダメージ音を再生
         if (SoundManager.Instance != null && _settings.damageSound != null)
         {
-            SoundManager.Instance.PlayEffect(_settings.damageSound);
+            SoundManager.Instance.PlayEffect(_settings.damageSound, _settings.SoundVolume);
         }
 
         float previousHealth = _healthManager.CurrentHealth;
@@ -141,7 +154,7 @@ public class HordeEnemy : MonoBehaviour, IDamageable
 
         if (SoundManager.Instance != null && _settings.explodeSound != null)
         {
-            SoundManager.Instance.PlayEffect(_settings.explodeSound);
+            SoundManager.Instance.PlayEffect(_settings.explodeSound, _settings.SoundVolume);
         }
 
         _healthManager.Kill();
@@ -156,7 +169,7 @@ public class HordeEnemy : MonoBehaviour, IDamageable
     {
         if (SoundManager.Instance != null && _settings.destroySound != null)
         {
-            SoundManager.Instance.PlayEffect(_settings.destroySound);
+            SoundManager.Instance.PlayEffect(_settings.destroySound, _settings.SoundVolume);
         }
         // プレイヤーに倒されたイベントを発火
         _onHordeDeath?.Invoke(DeathReason.PlayerDefeated);

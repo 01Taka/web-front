@@ -74,35 +74,12 @@ public class MechanicalSpiderLegController : MonoBehaviour, IBossAnimationContro
         }
     }
 
-    private int ConvertToPortToIndex(BossAttackPort attackPort)
-    {
-        if (attackPort == null)
-        {
-            Debug.LogError("AttackPort is null.");
-            return -1;
-        }
 
-        BossFiringPort firingPort = attackPort.FiringPortType;
-        switch (firingPort)
-        {
-            case BossFiringPort.RightFrontLeg:
-                return 1;
-            case BossFiringPort.LeftFrontLeg:
-                return 2;
-            case BossFiringPort.RightRearLeg:
-                return 0;
-            case BossFiringPort.LeftRearLeg:
-                return 3;
-            default:
-                Debug.LogWarning($"Unsupported firing port: {firingPort}. Returning an invalid index.");
-                return -1;
-        }
-    }
 
     // IBossAnimationController‚ÌŽÀ‘• (Implementation of IBossAnimationController)
     public void StartAnimation(BossAnimationControllerContext context)
     {
-        int legIndex = ConvertToPortToIndex(context.AttackPort);
+        int legIndex = MechanicalSpiderUtils.ConvertToPortToIndex(context.AttackPort);
         if (legIndex < 0 || legIndex >= legs.Length)
         {
             Debug.LogWarning($"Invalid leg index: {legIndex}. Animation will not start.");
@@ -125,7 +102,7 @@ public class MechanicalSpiderLegController : MonoBehaviour, IBossAnimationContro
 
     public void EndAnimation(BossAnimationControllerContext context)
     {
-        int legIndex = ConvertToPortToIndex(context.AttackPort);
+        int legIndex = MechanicalSpiderUtils.ConvertToPortToIndex(context.AttackPort);
         if (legIndex < 0 || legIndex >= legs.Length)
         {
             Debug.LogWarning($"Invalid leg index: {legIndex}. Animation will not end.");
@@ -185,7 +162,6 @@ public class MechanicalSpiderLegController : MonoBehaviour, IBossAnimationContro
             return;
         }
 
-        Debug.Log($"End Punch {legIndex}");
         _punchBarrierEffectManager.StopAndReturnImmediately(legs[legIndex]);
     }
 

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using UnityEngine;
 
-// MonoBehaviour‚ğŒp³‚µ‚È‚¢ƒˆ‚ÈC#ƒNƒ‰ƒX
 public class BossAttackLogicExecutor : IBossAttackLogic
 {
     private readonly IBossAnimationController _animationController;

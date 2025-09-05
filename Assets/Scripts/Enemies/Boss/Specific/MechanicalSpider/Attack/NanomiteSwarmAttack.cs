@@ -24,28 +24,9 @@ public class NanomiteSwarmAttack : BossAttackBase
     private Transform[] _bomParents;
     [SerializeField] private Transform _bomMoveTarget;
 
-    /// <summary>
-    /// 攻撃ポートから対応する親インデックスを返します。
-    /// </summary>
-    /// <param name="attackPort">攻撃ポート</param>
-    /// <returns>親インデックス。無効な場合は -1 を返します。</returns>
-    private int ConvertToPortIndex(BossAttackPort attackPort)
-    {
-        switch (attackPort.FiringPortType)
-        {
-            case BossFiringPort.RightFrontLeg: return 1;
-            case BossFiringPort.LeftFrontLeg: return 2;
-            case BossFiringPort.RightRearLeg: return 0;
-            case BossFiringPort.LeftRearLeg: return 3;
-            default:
-                Debug.LogWarning($"Unsupported firing port: {attackPort.FiringPortType}");
-                return -1;
-        }
-    }
-
     public override void ExecuteAttack(BossAttackContext context)
     {
-        int parentIndex = ConvertToPortIndex(context.SinglePort);
+        int parentIndex = MechanicalSpiderUtils.ConvertToPortToIndex(context.SinglePort);
         if (parentIndex < 0 || parentIndex >= _bomParents.Length || _bomPrefab == null)
         {
             Debug.LogWarning("Invalid parent index, missing parent transform, or missing bom prefab. Cannot spawn bombs.");

@@ -9,6 +9,13 @@ public abstract class BossAttackBase : MonoBehaviour, IBossAttack
 {
     public abstract BossAttackType AttackType { get; }
 
+    protected IBossAttacdkLogicCallbasks _callbacks;
+
+    public void InitializeAttackCallbacks(IBossAttacdkLogicCallbasks callbasks)
+    {
+        _callbacks = callbasks;
+    }
+
     // 抽象メソッドとして定義し、子クラスでの実装を強制します。
     public virtual void OnBeginPreparation(BossAttackContext context)
     {
@@ -17,12 +24,14 @@ public abstract class BossAttackBase : MonoBehaviour, IBossAttack
 
     public virtual void ExecuteAttack(BossAttackContext context)
     {
+        Debug.Log("ExecuteAttack");
         DamagePlayer(context);
         EndAnimation(context);
     }
 
     public virtual void OnCanceledAttack(BossAttackContext context)
     {
+        Debug.Log("OnCanceledAttack");
         DamageBoss(context);
         EndAnimation(context);
     }

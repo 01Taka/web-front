@@ -78,7 +78,7 @@ public class UIComplexAnimator : MonoBehaviour
     /// <summary>
     /// UIを非表示状態（Out状態）に即座に設定します。
     /// </summary>
-    private void SetStateToHide()
+    public void SetStateToHide()
     {
         DOTween.Kill(this.transform);
         _isShowing = false;
@@ -110,7 +110,7 @@ public class UIComplexAnimator : MonoBehaviour
     /// <summary>
     /// UIを表示状態（In状態）に即座に設定します。
     /// </summary>
-    private void SetStateToShow()
+    public void SetStateToShow()
     {
         DOTween.Kill(this.transform);
         _isShowing = true;

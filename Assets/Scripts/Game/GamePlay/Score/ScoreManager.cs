@@ -59,10 +59,7 @@ public class ScoreManager : MonoBehaviour
         var breakdown = new ScoreBreakdown();
 
         // ボス撃破ボーナス
-        if (_isBossDefeated)
-        {
-            breakdown.scores[ScoreType.BossDefeatBonus] = _scoreData.ScoreOnBossDefeat;
-        }
+        breakdown.scores[ScoreType.BossDefeatBonus] = _isBossDefeated ? _scoreData.ScoreOnBossDefeat : 0;
 
         // ボスHP削りボーナス
         breakdown.scores[ScoreType.BossDamageBonus] = GetBossHealthScore(bossPhaseIndex, currentPhaseHpPercent);
@@ -71,10 +68,7 @@ public class ScoreManager : MonoBehaviour
         breakdown.scores[ScoreType.HordeEnemyScore] = _hordeEnemyKilledCount * _scoreData.ScorePerHordeEnemyDefeat;
 
         // 残り時間ボーナス
-        if (remainingTime > 0)
-        {
-            breakdown.scores[ScoreType.TimeRemainingBonus] = Mathf.FloorToInt(remainingTime) * _scoreData.ScorePerSecondRemaining;
-        }
+        breakdown.scores[ScoreType.TimeRemainingBonus] = Mathf.Max(0, Mathf.FloorToInt(remainingTime)) * _scoreData.ScorePerSecondRemaining;
 
         // ダメージ減点
         breakdown.scores[ScoreType.DamageTakenPenalty] = Mathf.FloorToInt(totalDamageTaken) * _scoreData.ScorePerDamageTaken;

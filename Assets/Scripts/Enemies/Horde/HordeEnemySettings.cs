@@ -15,8 +15,13 @@ public class HordeEnemySettings : ScriptableObject
     [Header("自爆設定")]
     public float explosionDistance = 1.5f;
 
+    [Header("エフェクト設定")]
+    public GameObject DestoryEffectPrefab;
+    public float DestoryEffectSize;
+
     [Header("オーディオ設定")]
     public AudioClip damageSound;
     public AudioClip destroySound;
     public AudioClip explodeSound;
+    [Range(0, 1)] public float SoundVolume;
 }

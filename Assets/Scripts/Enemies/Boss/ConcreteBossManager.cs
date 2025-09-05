@@ -50,7 +50,7 @@ public class ConcreteBossManager : BaseBossManager
                 continue;
             }
 
-            Debug.Log(attack.AttackType);
+            attack.InitializeAttackCallbacks(_attackManager);
 
             // 各攻撃コンポーネントの AttackType プロパティを使用して辞書に追加
             // 同じ AttackType が存在しないかチェック

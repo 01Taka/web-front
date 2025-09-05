@@ -1,9 +1,10 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class BossAttackManager
+public class BossAttackManager : IBossAttacdkLogicCallbasks
 {
     private BossAttackPortsManager _portsManager;
+
 
     public void Initialize(MonoBehaviour coroutineRunner, IBossAttackLogic bossAttackLogic, BossFiringPort[] firingPorts)
     {
@@ -64,6 +65,21 @@ public class BossAttackManager
     public void StartUltimateAttack(AttackPattern attackPattern)
     {
         _portsManager.StartUltimateAttack(attackPattern);
+    }
+
+
+    public void ForceExecuteAttack(BossFiringPort portType)
+    {
+        _portsManager.ForceExecuteAttack(portType);
+    }
+
+    /// <summary>
+    /// 特定のポートで実行中の攻撃をキャンセルします。
+    /// </summary>
+    /// <param name="portType">キャンセルするポートのタイプ</param>
+    public void CancelAttackOnPort(BossFiringPort portType)
+    {
+        _portsManager.CancelAttackOnPort(portType);
     }
 
     /// <summary>

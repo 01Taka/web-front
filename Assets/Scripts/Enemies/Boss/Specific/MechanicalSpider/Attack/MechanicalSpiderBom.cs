@@ -115,6 +115,12 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
     public void TakeDamage(float amount)
     {
         _healthManager.TakeDamage(amount);
+
+        if (_settings.HitClip)
+        {
+            SoundManager.Instance.PlayEffect(_settings.HitClip, _settings.HitClipVolume);
+        }
+        
         if (_healthManager.CurrentHealth == 0)
         {
             StartSeekingOnDestroyed();
