@@ -8986,13 +8986,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _deviceStateViewSets:
-  - State: 0
+  - State: 1
     Camera: {fileID: 1883452871}
     Canvas: {fileID: 1490551336}
-  - State: 1
+  - State: 2
     Camera: {fileID: 578273834}
     Canvas: {fileID: 2141217856}
-  - State: 2
+  - State: 3
     Camera: {fileID: 631778493}
     Canvas: {fileID: 1335582378}
 --- !u!1 &1741583377

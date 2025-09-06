@@ -25,7 +25,7 @@ public class NetworkGameManager : MonoBehaviour
         }
     }
 
-    public void SpawnPlayer(NetworkRunner runner, PlayerRef sharedMasterRef)
+    public void SpawnPlayer(NetworkRunner runner, PlayerRef inputAuthority)
     {
         if (runner == null)
         {
@@ -45,15 +45,15 @@ public class NetworkGameManager : MonoBehaviour
             return;
         }
 
-        if (!SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(sharedMasterRef))
+        if (inputAuthority == null || inputAuthority.IsNone)
         {
-            Debug.LogError($"Error: The provided PlayerRef ({sharedMasterRef}) is not the MasterClient.");
+            Debug.LogError("Input authority is None. Spawning a player without specific input authority.");
             return;
         }
 
         try
         {
-            NetworkObject playerObj = runner.Spawn(playerPrefab, _spawnPosition, Quaternion.identity, runner.LocalPlayer);
+            NetworkObject playerObj = runner.Spawn(playerPrefab, _spawnPosition, Quaternion.identity, inputAuthority);
 
             if (playerObj == null)
             {
@@ -61,7 +61,7 @@ public class NetworkGameManager : MonoBehaviour
             }
             else
             {
-                Debug.Log($"Player spawned with authority {sharedMasterRef}.");
+                Debug.Log($"Player spawned with authority {inputAuthority} by {runner.LocalPlayer}.", this);
             }
         }
         catch (System.Exception ex)

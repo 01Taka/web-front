@@ -31,14 +31,7 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
     {
         if (runner.IsSharedModeMasterClient)
         {
-            Debug.Log($"{Object.StateAuthority}, {Object.InputAuthority}, {runner.LocalPlayer}, {player}");
-            if (PlayerIndexes.Count == 0)
-            {
-                HostPlayerRef = player;
-                Debug.Log($"[Host Player Assigned] Host is ID:{HostPlayerRef.PlayerId}");
-            }
-
-            NetworkGameManager.Instance.SpawnPlayer(runner, SharedModeMasterClientTracker.MasterClientPlayerRef);
+            NetworkGameManager.Instance.SpawnPlayer(runner, player);
 
             int newIndex = GetNextAvailableIndex();
             PlayerIndexes.Add(player, newIndex);

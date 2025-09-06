@@ -12,7 +12,26 @@ public struct DeviceStateViewSet
 
 public class DeviceStateManager : MonoBehaviour
 {
+    // Singletonインスタンスを格納する静的変数
+    public static DeviceStateManager Instance { get; private set; }
+
     [SerializeField] private List<DeviceStateViewSet> _deviceStateViewSets;
+
+    // Awakeメソッドでインスタンスを初期化する
+    private void Awake()
+    {
+        // インスタンスが既に存在する場合は、このオブジェクトを破棄する
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+
+        // このオブジェクトをSingletonインスタンスとして設定する
+        Instance = this;
+        // シーンを切り替えてもこのオブジェクトが破棄されないようにする
+        DontDestroyOnLoad(this.gameObject);
+    }
 
     public void SetDeviceState(DeviceState state)
     {

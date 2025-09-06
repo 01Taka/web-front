@@ -3,6 +3,9 @@ using UnityEngine;
 
 public class NetworkPlayerController : NetworkBehaviour
 {
+    [Networked, OnChangedRender(nameof(OnDeviceStateChanged))]
+    public DeviceState PlayerDeviceState { get; set; }
+
     // MonoBehaviour
     private InputAttackHandler _inputAttackHandler;
     // NetworkBehaviour
@@ -13,22 +16,41 @@ public class NetworkPlayerController : NetworkBehaviour
 
     public override void Spawned()
     {
-        DeviceStateManager deviceStateManager = FindAnyObjectByType<DeviceStateManager>();
+        bool isLocalMasterClient = SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(Runner.LocalPlayer);
+        Debug.Log($"Local: {Runner.LocalPlayer}, State: {Object.StateAuthority}, Input: {Object.InputAuthority}, IsMasterClient: {isLocalMasterClient}", this);
 
-        if (deviceStateManager == null)
+        if (Object.InputAuthority == null || Object.InputAuthority.IsNone)
         {
-            Debug.LogError("DeviceStateManager Not Found.");
+            Debug.LogError("InputAuthority is none");
             return;
         }
 
-        bool isMasterClient = Runner.IsSharedModeMasterClient;
-        deviceStateManager.SetDeviceState(isMasterClient ? DeviceState.Host : DeviceState.Client);
+        if (HasStateAuthority)
+        {
+            if (!isLocalMasterClient)
+            {
+                TransferStateAuthority();
+            }
 
-        TransferStateAuthority();
+            DeviceState deviceState = SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(Object.InputAuthority)
+                    ? DeviceState.Host
+                    : DeviceState.Client;
+
+            PlayerDeviceState = deviceState;
+        }
 
         if (HasInputAuthority)
         {
             SetupAttackSystem();
+        }
+    }
+
+    private void OnDeviceStateChanged()
+    {
+        if (HasInputAuthority)
+        {
+            Debug.Log($"DeviceState of {Runner.LocalPlayer} changed to {PlayerDeviceState}");
+            DeviceStateManager.Instance.SetDeviceState(PlayerDeviceState);
         }
     }
 
