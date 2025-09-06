@@ -1,62 +1,79 @@
 using Fusion;
 using UnityEngine;
 
-[RequireComponent(typeof(PlayerProperties))]
 public class NetworkPlayerController : NetworkBehaviour
 {
-    // C# class
-    private PlayerAuthorityHandler authorityHandler;
-    private PlayerCameraController cameraController;
-
     // MonoBehaviour
-    private InputAttackHandler inputAttackHandler;
-    private CameraRig cameraRig;
-
+    private InputAttackHandler _inputAttackHandler;
     // NetworkBehaviour
-    private PlayerProperties playerProperties;
-    private AttackRequestSender attackSender;
+    private AttackRequestSender _attackSender;
+
+    private int _playerLevel = 1;
+    private Direction _upDirection = Direction.Up;
 
     public override void Spawned()
     {
-        authorityHandler = new PlayerAuthorityHandler(this);
-        authorityHandler.Initialize();
+        DeviceStateManager deviceStateManager = FindAnyObjectByType<DeviceStateManager>();
 
-        playerProperties = GetComponent<PlayerProperties>();
-        if (playerProperties == null)
+        if (deviceStateManager == null)
         {
-            Debug.LogError("[NetworkPlayerController] PlayerProperties component missing.");
+            Debug.LogError("DeviceStateManager Not Found.");
+            return;
         }
+
+        bool isMasterClient = Runner.IsSharedModeMasterClient;
+        deviceStateManager.SetDeviceState(isMasterClient ? DeviceState.Host : DeviceState.Client);
+
+        TransferStateAuthority();
 
         if (HasInputAuthority)
         {
-            cameraRig = SceneComponentManager.Instance.CameraRig;
-            cameraController = new PlayerCameraController(cameraRig, Properties);
+            SetupAttackSystem();
+        }
+    }
 
-            attackSender = GetComponent<AttackRequestSender>();
-            attackSender.Setup(Properties.PlayerState.Level);
-
-            inputAttackHandler = GetComponent<InputAttackHandler>();
-            if (inputAttackHandler != null)
+    private void TransferStateAuthority()
+    {
+        if (HasStateAuthority &&
+            !SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(Runner.LocalPlayer))
+        {
+            StateAuthorityManager manager = GlobalRegistry.Instance.GetStateAuthorityManager();
+            if (manager != null)
             {
-                inputAttackHandler.enabled = true;
-                inputAttackHandler.Setup(
-                    attackSender,
-                    SceneComponentManager.Instance.AttackRecognizer,
-                    SceneComponentManager.Instance.GameCamera,
-                    DirectionExtensions.ToVector2(playerProperties.PlayerState.UpDirection)
-                );
+                Object.ReleaseStateAuthority();
+                manager.RequestStateAuthorityTransferToMaster(Object.Id);
             }
             else
             {
-                Debug.LogWarning("[NetworkPlayerController] InputAttackHandler component missing.");
+                Debug.LogError("StateAuthorityManager not found.");
             }
         }
     }
 
-    private void OnDisable()
+    private void SetupAttackSystem()
     {
-        cameraController?.Dispose();
-    }
+        _attackSender = GetComponent<AttackRequestSender>();
+        _inputAttackHandler = GetComponent<InputAttackHandler>();
 
-    public PlayerProperties Properties => playerProperties;
+        if (_attackSender == null)
+        {
+            Debug.LogError("AttackRequestSender component missing.");
+            return;
+        }
+
+        if (_inputAttackHandler == null)
+        {
+            Debug.LogError("InputAttackHandler component missing.");
+            return;
+        }
+
+        _attackSender.Setup(_playerLevel);
+
+        _inputAttackHandler.Setup(
+            _attackSender,
+            SceneComponentManager.Instance.AttackRecognizer,
+            SceneComponentManager.Instance.GameCamera,
+            DirectionExtensions.ToVector2(_upDirection)
+        );
+    }
 }

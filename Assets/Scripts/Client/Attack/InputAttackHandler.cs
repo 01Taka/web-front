@@ -27,6 +27,7 @@ public class InputAttackHandler : MonoBehaviour
             return;
         }
 
+        this.enabled = true;
         this.attackRecognizer = attackRecognizer;
         this.attackSender = attackSender;
         this.gameCamera = gameCamera;

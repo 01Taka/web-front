@@ -10,6 +10,8 @@ using System;
 /// </summary>
 public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
 {
+    [Networked] public PlayerRef HostPlayerRef { get; set; }
+
     [Networked, Capacity(8)]
     private NetworkDictionary<PlayerRef, int> PlayerIndexes => default;
     private List<int> _freeIndexes = new List<int>();
@@ -25,16 +27,23 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
     //--------------------------------------------------------------------------------
     // Player Handling
     //--------------------------------------------------------------------------------
-
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (!runner.IsSharedModeMasterClient) return;
+        if (runner.IsSharedModeMasterClient)
+        {
+            Debug.Log($"{Object.StateAuthority}, {Object.InputAuthority}, {runner.LocalPlayer}, {player}");
+            if (PlayerIndexes.Count == 0)
+            {
+                HostPlayerRef = player;
+                Debug.Log($"[Host Player Assigned] Host is ID:{HostPlayerRef.PlayerId}");
+            }
 
-        NetworkGameManager.Instance.SpawnPlayer(runner, SharedModeMasterClientTracker.MasterClientPlayerRef);
+            NetworkGameManager.Instance.SpawnPlayer(runner, SharedModeMasterClientTracker.MasterClientPlayerRef);
 
-        int newIndex = GetNextAvailableIndex();
-        PlayerIndexes.Add(player, newIndex);
-        Debug.Log($"[PlayerJoined] ID:{player.PlayerId} >>> Index:{newIndex}");
+            int newIndex = GetNextAvailableIndex();
+            PlayerIndexes.Add(player, newIndex);
+            Debug.Log($"[PlayerJoined] ID:{player.PlayerId} >>> Index:{newIndex}");
+        }
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)

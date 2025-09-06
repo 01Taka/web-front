@@ -4,6 +4,7 @@ public class GlobalRegistry : MonoBehaviour
 {
     public static GlobalRegistry Instance { get; private set; }
     private NetworkPlayerManager _networkPlayerManager;
+    private StateAuthorityManager _stateAuthorityManager;
 
     void Awake()
     {
@@ -35,5 +36,14 @@ public class GlobalRegistry : MonoBehaviour
             _networkPlayerManager = FindFirstObjectByType<NetworkPlayerManager>();
         }
         return _networkPlayerManager;
+    }
+
+    public StateAuthorityManager GetStateAuthorityManager()
+    {
+        if (_stateAuthorityManager == null)
+        {
+            _stateAuthorityManager = FindFirstObjectByType<StateAuthorityManager>();
+        }
+        return _stateAuthorityManager;
     }
 }
