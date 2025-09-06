@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 644371ae57e72284688bec9d74cd036e, type: 3}
   m_Name: HordeEnemySettings
   m_EditorClassIdentifier: 
-  maxHealth: 10
+  maxHealth: 40
   moveSpeed: 3
   enemyScale: 0.3
   adjustAngle: 90

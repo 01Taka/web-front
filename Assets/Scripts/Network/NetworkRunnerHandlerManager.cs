@@ -16,13 +16,6 @@ public class NetworkRunnerHandlerManager : MonoBehaviour
 
     [SerializeField] private int _peerCount = 1;
 
-
-    private void Start()
-    {
-        Debug.Log($"Online: {GlobalRegistry.Instance.CheckIsOnline()}");
-    }
-
-
     private List<NetworkRunnerHandler> _activeRunners = new List<NetworkRunnerHandler>();
 
     public async Task StartGame(string sessionName)

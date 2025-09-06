@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AttackType: 5
   AttackName: Nano
-  BaseDamage: 20
+  BaseDamage: 30
   AttackDuration: 5
   AttackPreparationTime: 0
   CancelDamageThreshold: 300

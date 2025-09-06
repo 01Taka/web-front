@@ -18,9 +18,5 @@ public class BossAttackPort
     public void SetAvailability(bool isAvailable)
     {
         this.isAvailable = isAvailable;
-        if (isAvailable)
-        {
-            MyLogger.Log($"ポート ({_firingPortType}) が解放されました。");
-        }
     }
 }

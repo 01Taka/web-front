@@ -101,8 +101,11 @@ public class HordeSpawner : MonoBehaviour
         // Remove the enemy from the list
         _spawnedEnemies.Remove(enemy);
 
-        // Invoke the UnityEvent to notify other systems
-        OnHordeEnemyKilled.Invoke();
+        if (deathReason == DeathReason.PlayerDefeated)
+        {
+            // Invoke the UnityEvent to notify other systems
+            OnHordeEnemyKilled.Invoke();
+        }
 
         // Destroy the enemy object
         Destroy(enemy);
