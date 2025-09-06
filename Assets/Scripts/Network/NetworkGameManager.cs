@@ -3,7 +3,27 @@ using UnityEngine;
 
 public class NetworkGameManager : MonoBehaviour
 {
+    public static NetworkGameManager Instance { get; private set; }
+
     [SerializeField] private NetworkPrefabRef playerPrefab;
+
+    private Vector3 _spawnPosition = Vector3.zero;
+
+    // ゲーム開始時にインスタンスを初期化
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            // シーン内にすでにインスタンスが存在する場合、重複するインスタンスを破棄する
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            Instance = this;
+            // シーンを切り替えてもインスタンスを維持する場合
+            DontDestroyOnLoad(this.gameObject);
+        }
+    }
 
     public void SpawnPlayer(NetworkRunner runner, PlayerRef sharedMasterRef)
     {
@@ -13,7 +33,13 @@ public class NetworkGameManager : MonoBehaviour
             return;
         }
 
-        if (!playerPrefab.IsValid)
+        if (runner.LocalPlayer == null || runner.LocalPlayer.IsNone)
+        {
+            Debug.LogError("Runner LocalPlayer is null. Cannot spawn player.");
+            return;
+        }
+
+        if (playerPrefab == null || !playerPrefab.IsValid)
         {
             Debug.LogError("Player prefab is not valid.");
             return;
@@ -25,11 +51,9 @@ public class NetworkGameManager : MonoBehaviour
             return;
         }
 
-        Vector3 spawnPos = GetSpawnPosition();
-
         try
         {
-            NetworkObject playerObj = runner.Spawn(playerPrefab, spawnPos, Quaternion.identity, runner.LocalPlayer);
+            NetworkObject playerObj = runner.Spawn(playerPrefab, _spawnPosition, Quaternion.identity, runner.LocalPlayer);
 
             if (playerObj == null)
             {
@@ -44,10 +68,5 @@ public class NetworkGameManager : MonoBehaviour
         {
             Debug.LogError($"Exception occurred while spawning player: {ex}");
         }
-    }
-
-    private Vector3 GetSpawnPosition()
-    {
-        return Vector3.zero;
     }
 }

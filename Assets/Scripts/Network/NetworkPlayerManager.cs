@@ -10,8 +10,9 @@ using System;
 /// </summary>
 public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
 {
-    [Networked] private NetworkDictionary<PlayerRef, int> PlayerIndexes => default;
-    [Networked] private NetworkDictionary<int, byte> FreeIndexes => default;
+    [Networked, Capacity(8)]
+    private NetworkDictionary<PlayerRef, int> PlayerIndexes => default;
+    private List<int> _freeIndexes = new List<int>();
 
     public int PlayerCount => PlayerIndexes.Count;
 
@@ -29,10 +30,11 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
     {
         if (!runner.IsSharedModeMasterClient) return;
 
+        NetworkGameManager.Instance.SpawnPlayer(runner, SharedModeMasterClientTracker.MasterClientPlayerRef);
+
         int newIndex = GetNextAvailableIndex();
         PlayerIndexes.Add(player, newIndex);
-
-        Debug.Log($"[PlayerJoined] ID:{player.PlayerId} → Index:{newIndex}");
+        Debug.Log($"[PlayerJoined] ID:{player.PlayerId} >>> Index:{newIndex}");
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
@@ -43,7 +45,7 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
 
         int removedIndex = PlayerIndexes[player];
         PlayerIndexes.Remove(player);
-        FreeIndexes.Add(removedIndex, 0); // 値はダミー
+        _freeIndexes.Add(removedIndex);
 
         Debug.Log($"[PlayerLeft] ID:{player.PlayerId} (Index:{removedIndex}) → Free");
     }
@@ -60,19 +62,16 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
 
     private int GetNextAvailableIndex()
     {
-        if (FreeIndexes.Count > 0)
+        if (_freeIndexes.Count > 0)
         {
-            int minIndex = int.MaxValue;
-            foreach (var kv in FreeIndexes)
-            {
-                if (kv.Key < minIndex) minIndex = kv.Key;
-            }
-            FreeIndexes.Remove(minIndex);
-            return minIndex;
+            // リストの末尾から取得する方が効率的
+            int index = _freeIndexes[_freeIndexes.Count - 1];
+            _freeIndexes.RemoveAt(_freeIndexes.Count - 1);
+            return index;
         }
-
         return PlayerIndexes.Count;
     }
+
 
     public bool TryGetPlayerIndex(PlayerRef player, out int index)
     {

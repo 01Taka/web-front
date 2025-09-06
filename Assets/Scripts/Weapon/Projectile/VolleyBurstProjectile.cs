@@ -11,8 +11,6 @@ public class VolleyBurstProjectile : ProjectileBase
 
     private void Explode()
     {
-        Debug.Log("[VolleyBurst] Exploding");
-
         if (explosionPrefab != null)
         {
             VolleyExplosion explosion = Instantiate(explosionPrefab, transform.position, Quaternion.identity);

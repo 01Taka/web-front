@@ -2,116 +2,97 @@ using Fusion;
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class NetworkRunnerHandler : MonoBehaviour
 {
-    [Header("Prefabs and Managers")]
-    [SerializeField] private NetworkRunner runnerPrefab;
-    [SerializeField] private NetworkGameManager gameManager;
+    private string _gameSceneName;
+    private string _sessionName;
+    private NetworkRunner _runnerPrefab;
+    private NetworkRunner _runner;
 
-    [Header("Game Settings")]
-    [SerializeField] private string gameSceneName = "GameScene";
+    // éåŒæœŸå‡¦ç†ã®å®Œäº†ã‚’å¾…ã¤ãŸã‚ã®TaskCompletionSource
+    private TaskCompletionSource<bool> _initializationTcs;
 
-    private NetworkRunner runner;
-
-    /// <summary>
-    /// w’è‚³‚ê‚½ƒZƒbƒVƒ‡ƒ“–¼‚ÅƒQ[ƒ€‚ğŠJn‚·‚é”ñ“¯Šúƒƒ\ƒbƒhB
-    /// ‚±‚Ìƒƒ\ƒbƒh‚ÍAUIŠÇ—ƒNƒ‰ƒX‚©‚çŒÄ‚Ño‚³‚ê‚é‚±‚Æ‚ğ‘z’è‚µ‚Ä‚¢‚Ü‚·B
-    /// </summary>
-    /// <param name="sessionName">Q‰Á‚Ü‚½‚Íì¬‚·‚éƒZƒbƒVƒ‡ƒ“–¼</param>
-    public async Task StartGame(string sessionName)
+    public async Task StartGame(string gameSceneName, string sessionName, NetworkRunner runnerPrefab)
     {
-        if (runner != null)
+        Debug.Log("StartGame");
+
+        if (_runner != null)
         {
-            Debug.LogWarning("ƒQ[ƒ€‚ÍŠù‚ÉŠJn‚³‚ê‚Ä‚¢‚Ü‚·B");
+            Debug.LogWarning("ã‚²ãƒ¼ãƒ ã¯æ—¢ã«é–‹å§‹ã•ã‚Œã¦ã„ã¾ã™ã€‚");
             return;
         }
 
         if (runnerPrefab == null)
         {
-            Debug.LogError("Runner prefab is not assigned.");
+            Debug.LogError("Runner prefab or PlayerSpawner is not assigned.");
             return;
         }
 
-        if (gameManager == null)
-        {
-            Debug.LogError("GameManager is not assigned.");
-            return;
-        }
+        _runnerPrefab = runnerPrefab;
+        _sessionName = sessionName;
+        _gameSceneName = gameSceneName;
+
+        // åˆæœŸåŒ–ã®å®Œäº†ã‚’å¾…ã¤ãŸã‚ã®Taskã‚’æº–å‚™
+        _initializationTcs = new TaskCompletionSource<bool>();
 
         try
         {
-            runner = Instantiate(runnerPrefab);
-            runner.ProvideInput = true;
-
-            void PlayerSpawnCallback(SharedModeMasterClientTracker tracker)
+            await InitializeAndConnect();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Unhandled exception in StartGame(): {ex}");
+            if (_runner != null)
             {
-                SharedModeMasterClientTracker.OnTrackerSpawned -= PlayerSpawnCallback;
-
-                if (tracker == null)
-                {
-                    Debug.LogError("Tracker was null during spawn callback.");
-                    return;
-                }
-
-                PlayerRef masterRef = tracker.Object.StateAuthority;
-                gameManager.SpawnPlayer(runner, masterRef);
+                await _runner.Shutdown();
             }
+        }
+    }
 
-            SharedModeMasterClientTracker.OnTrackerSpawned += PlayerSpawnCallback;
+    private async Task InitializeAndConnect()
+    {
+        _runner = Instantiate(_runnerPrefab);
+        _runner.ProvideInput = true;
 
-            var startArgs = new StartGameArgs
-            {
-                GameMode = GameMode.Shared,
-                SessionName = sessionName,
-            };
+        var startArgs = new StartGameArgs
+        {
+            GameMode = GameMode.Shared,
+            SessionName = _sessionName,
+        };
 
-            var result = await runner.StartGame(startArgs);
+        try
+        {
+            var result = await _runner.StartGame(startArgs);
+
             if (!result.Ok)
             {
                 Debug.LogError($"Failed to start game: {result.ShutdownReason}");
                 return;
             }
 
-            if (runner.IsSharedModeMasterClient)
+            if (_runner.IsSharedModeMasterClient)
             {
-                try
-                {
-                    var loadSceneTask = runner.LoadScene(gameSceneName);
-                    await loadSceneTask;
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Exception while loading scene: {e.Message}");
-                    return;
-                }
-            }
-
-            if (!SetActiveScene(gameSceneName))
-            {
-                Debug.LogError($"Failed to load or activate scene: {gameSceneName}");
+                await _runner.LoadScene(_gameSceneName);
+                Debug.Log($"Master Client has loaded the scene: {_gameSceneName}");
             }
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Unhandled exception in StartGame(): {ex}");
+            // äºˆæœŸã›ã¬ä¾‹å¤–ãŒç™ºç”Ÿã—ãŸå ´åˆ
+            Debug.LogError($"Unhandled exception during initialization: {ex}");
+            // ä¾‹å¤–ã‚’é€šçŸ¥ã—ã¦ã‚¿ã‚¹ã‚¯ã‚’å¤±æ•—ã•ã›ã‚‹
+            _initializationTcs.TrySetException(ex);
+            return;
         }
-    }
-
-    /// <summary>
-    /// w’è‚³‚ê‚½ƒV[ƒ“‚ğƒAƒNƒeƒBƒu‚É‚·‚éƒwƒ‹ƒp[ƒƒ\ƒbƒhB
-    /// </summary>
-    private bool SetActiveScene(string sceneName)
-    {
-        Scene scene = SceneManager.GetSceneByName(sceneName);
-        if (scene.IsValid() && scene.isLoaded)
+        finally
         {
-            SceneManager.SetActiveScene(scene);
-            return true;
+            // åˆæœŸåŒ–ãŒå®Œäº†ã—ãŸã“ã¨ã‚’é€šçŸ¥ (æˆåŠŸã¾ãŸã¯å¤±æ•—)
+            // ã“ã“ã«åˆ°é”ã™ã‚Œã°ã€å¿…ãšã‚¿ã‚¹ã‚¯ãŒå®Œäº†ã™ã‚‹
+            if (!_initializationTcs.Task.IsCompleted)
+            {
+                _initializationTcs.TrySetResult(true);
+            }
         }
-
-        Debug.LogWarning($"Scene '{sceneName}' is not valid or not loaded.");
-        return false;
     }
 }

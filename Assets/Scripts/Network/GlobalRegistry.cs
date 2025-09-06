@@ -1,5 +1,4 @@
 using UnityEngine;
-using static Unity.Collections.Unicode;
 
 public class GlobalRegistry : MonoBehaviour
 {

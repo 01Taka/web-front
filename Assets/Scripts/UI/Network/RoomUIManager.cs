@@ -8,7 +8,7 @@ public class RoomUIManager : MonoBehaviour
     // シリアライズフィールドとしてUIコンポーネントと参加処理クラスの参照をアサイン
     [SerializeField] private TMP_InputField _sessionInputField;
     [SerializeField] private TMP_Text _roomIdText;
-    [SerializeField] private NetworkRunnerHandler _networkRunnerHandler;
+    [SerializeField] private NetworkRunnerHandlerManager _networkManager;
 
     [Header("Buttons")]
     [SerializeField] private UnityEngine.UI.Button _joinButton;
@@ -166,7 +166,7 @@ public class RoomUIManager : MonoBehaviour
         Debug.Log($"Joined the Session with {sessionId}");
         try
         {
-            await _networkRunnerHandler.StartGame(sessionId);
+            await _networkManager.StartGame(sessionId);
         }
         finally
         {
