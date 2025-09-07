@@ -32,9 +32,16 @@ public class NetworkRunnerHandler : MonoBehaviour
 
         try
         {
-            await InitializeAndConnect();
-            Debug.Log("Initialization and connection complete.");
-            DeviceStateManager.Instance.SetDeviceState(DeviceState.Online);
+            // awaitをつけると以下の関数は終わらない処理であることに注意
+            InitializeAndConnect();
+
+            DeviceStateManager deviceStateManager = GetComponentInParent<DeviceStateManager>();
+            if (!deviceStateManager)
+            {
+                Debug.LogError("Not Found DeviceStateManager In Parent");
+                return;
+            }
+            deviceStateManager.SetDeviceState(DeviceState.Online);
         }
         catch (Exception ex)
         {
@@ -69,12 +76,14 @@ public class NetworkRunnerHandler : MonoBehaviour
 
         if (_runner.IsSharedModeMasterClient)
         {
-            Debug.Log($">>> Master Client has started loading a scene: {_gameSceneName}");
+            Debug.Log($"Master Client has started loading a scene: {_gameSceneName}");
 
             try
             {
+                // WebGL Build後は以下の処理はゲーム終了まで終わらない
+                // これ以降に処理を書いても実行されない
                 await _runner.LoadScene(_gameSceneName);
-                Debug.Log($"<<< Master Client has loaded the scene: {_gameSceneName}");
+                Debug.Log($"Master Client has loaded a scene: {_gameSceneName}");
             }
             catch (Exception ex)
             {

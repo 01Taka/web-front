@@ -11,30 +11,29 @@ public struct DeviceStateViewSet
 
 public class DeviceStateManager : MonoBehaviour
 {
-    // Singletonインスタンスを格納する静的変数 
-    public static DeviceStateManager Instance { get; private set; }
     [SerializeField] private List<DeviceStateViewSet> _deviceStateViewSets;
+    [SerializeField] private GameObject[] _hostScriptsParents;
+    [SerializeField] private DeviceState _currentDeviceState = DeviceState.None;
 
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
+    public DeviceState CurrentDeviceState => _currentDeviceState;
 
     private void Start()
     {
         SetDeviceState(DeviceState.Offline);
     }
 
-    public void SetDeviceState(DeviceState state)
+    public void SetDeviceState(DeviceState state, bool isSettingHostScriptsActive = false)
     {
         Debug.Log($"Device State Changed to {state}");
+        _currentDeviceState= state;
+        if (isSettingHostScriptsActive)
+        {
+            foreach (var obj in _hostScriptsParents)
+            {
+                obj.SetActive(state == DeviceState.Host);
+            }
+        }
+
         foreach (var set in _deviceStateViewSets)
         {
             bool isActive = set.State == state;

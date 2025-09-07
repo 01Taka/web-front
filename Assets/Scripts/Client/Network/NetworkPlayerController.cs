@@ -13,7 +13,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
     public override void Spawned()
     {
-        Debug.Log($">>> Spawned player: {Runner.LocalPlayer}");
+        Debug.Log($">>> Spawned player: {Runner.LocalPlayer}, InputAuthority: {Object.InputAuthority}", this);
 
         bool isLocalMasterClient = SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(Runner.LocalPlayer);
 

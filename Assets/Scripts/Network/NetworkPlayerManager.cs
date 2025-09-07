@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Fusion.Sockets;
 using System;
+using NUnit.Framework;
 
 /// <summary>
 /// プレイヤーの参加・退出を管理し、インデックスを割り当てるマネージャ。
@@ -12,10 +13,11 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
 {
     [Networked]
     [UnityNonSerialized]
-    public NetworkBool IsDecidedDeviceState { get; set; }
+    public NetworkBool HasGameStarted { get; set; }
 
     [Networked, Capacity(8)]
     private NetworkDictionary<PlayerRef, int> PlayerIndexes => default;
+
     private List<int> _freeIndexes = new List<int>();
 
     public int PlayerCount => PlayerIndexes.Count;
@@ -26,28 +28,44 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
     public bool IsOnline => Runner != null && Runner.IsRunning;
     public bool IsMasterClient => Runner != null && Runner.IsRunning && Runner.IsSharedModeMasterClient;
 
-
+    //--------------------------------------------------------------------------------
+    // ゲーム開始
+    //--------------------------------------------------------------------------------
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    public void Rpc_DecidePlayerDeviceState()
+    public void Rpc_StartGame()
     {
+        DeviceStateManager deviceStateManager = GetComponentInParent<DeviceStateManager>();
+        if (!deviceStateManager)
+        {
+            Debug.LogError("Not Found DeviceStateManager In Parent");
+            return;
+        }
+
         if (Runner.IsSharedModeMasterClient)
         {
-            DeviceStateManager.Instance.SetDeviceState(DeviceState.Host);
-        } else
+            deviceStateManager.SetDeviceState(DeviceState.Host, true);
+        }
+        else
         {
-            DeviceStateManager.Instance.SetDeviceState(DeviceState.Client);
+            deviceStateManager.SetDeviceState(DeviceState.Client, true);
+        }
+
+        if (HasStateAuthority)
+        {
+            HasGameStarted = true;
+            Debug.Log("[Rpc_StartGame] Game started.");
         }
     }
 
-    public void RequestDecidePlayerDeviceState()
+    public void RequestStartGame()
     {
         if (!HasStateAuthority)
         {
-            Debug.LogWarning("You must have the state permission to call CallRpcDecidePlayerDeviceState.");
+            Debug.LogWarning("You must have the state permission to call RequestStartGame.");
             return;
         }
-        IsDecidedDeviceState = true;
-        Rpc_DecidePlayerDeviceState();
+        HasGameStarted = true;
+        Rpc_StartGame();
     }
 
     //--------------------------------------------------------------------------------
@@ -55,20 +73,20 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
     //--------------------------------------------------------------------------------
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (runner.IsSharedModeMasterClient)
+        if (!runner.IsSharedModeMasterClient) return;
+
+        if (HasGameStarted)
         {
-            if (IsDecidedDeviceState)
-            {
-                Debug.LogError($"[PlayerJoined] ID:{player.PlayerId} → Player device state is already decided. Cannot Spawn.");
-                return;
-            }
-
-            NetworkGameManager.Instance.SpawnPlayer(runner, player);
-
-            int newIndex = GetNextAvailableIndex();
-            PlayerIndexes.Add(player, newIndex);
-            Debug.Log($"[PlayerJoined] ID:{player.PlayerId} >>> Index:{newIndex}");
+            Debug.LogError($"[PlayerJoined] ID:{player.PlayerId} → Game already started. Rejecting.");
+            runner.Disconnect(player);
+            return;
         }
+
+        NetworkGameManager.Instance.SpawnPlayer(runner, player);
+
+        int newIndex = GetNextAvailableIndex();
+        PlayerIndexes.Add(player, newIndex);
+        Debug.Log($"[PlayerJoined] ID:{player.PlayerId} >>> Index:{newIndex}");
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
@@ -86,19 +104,22 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason reason)
     {
-        // セッション終了時にSharedModeMasterClientTrackerを初期化する
         SharedModeMasterClientTracker.ResetInstance();
+
+        if (HasStateAuthority)
+        {
+            PlayerIndexes.Clear();
+            _freeIndexes.Clear();
+        }
     }
 
     //--------------------------------------------------------------------------------
     // Utility
     //--------------------------------------------------------------------------------
-
     private int GetNextAvailableIndex()
     {
         if (_freeIndexes.Count > 0)
         {
-            // リストの末尾から取得する方が効率的
             int index = _freeIndexes[_freeIndexes.Count - 1];
             _freeIndexes.RemoveAt(_freeIndexes.Count - 1);
             return index;
@@ -106,34 +127,44 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
         return PlayerIndexes.Count;
     }
 
-
     public bool TryGetPlayerIndex(PlayerRef player, out int index)
     {
         return PlayerIndexes.TryGetValueSafe(player, out index);
     }
 
     /// <summary>
-    /// マスタークライアント以外のプレイヤーが、0から連番になるようにインデックスを取得する
+    /// マスタークライアント以外のプレイヤーが、0から連番になるようにインデックスを取得する。
+    /// PlayerIndexes に存在しないプレイヤーは false を返す。
     /// </summary>
-    /// <param name="player">取得したいプレイヤーのPlayerRef</param>
-    /// <param name="compactedIndex">0から連番に詰めたインデックス</param>
-    /// <returns>インデックスが取得できたか（マスタークライアントはfalse）</returns>
     public bool TryGetCompactedIndex(PlayerRef player, out int compactedIndex)
     {
+#if UNITY_EDITOR
+        var playersCount = PlayerIndexes.Count - 1; // マスターを除いた人数
+        if (playersCount > 0)
+        {
+            compactedIndex = UnityEngine.Random.Range(0, playersCount);
+            Debug.Log($"[DEBUG MODE] TryGetCompactedIndex: Returning random {compactedIndex}.");
+            return true;
+        }
+#endif
         compactedIndex = -1;
 
-        // マスタークライアントは常にfalseを返す
-        if (SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(player)) return false;
+        if (SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(player))
+        {
+            Debug.LogError("TryGetCompactedIndex: Master client cannot get compacted index.");
+            return false;
+        }
 
-        // PlayerIndexesにプレイヤーが存在するか確認
-        if (!PlayerIndexes.ContainsKey(player)) return false;
+        if (!PlayerIndexes.ContainsKey(player))
+        {
+            Debug.LogError($"TryGetCompactedIndex: Player {player.PlayerId} not in PlayerIndexes.");
+            return false;
+        }
 
-        // PlayerRefをキーとしてソートされたリストを作成
         var sortedPlayers = new List<PlayerRef>(PlayerIndexes.GetKeys());
-        sortedPlayers.RemoveAll(player => player.PlayerId == SharedModeMasterClientTracker.MasterClientPlayerRef.PlayerId);
-        sortedPlayers.Sort();
+        sortedPlayers.Remove(SharedModeMasterClientTracker.MasterClientPlayerRef);
+        sortedPlayers.Sort((a, b) => a.PlayerId.CompareTo(b.PlayerId));
 
-        // プレイヤーのインデックスをリスト内で見つける
         for (int i = 0; i < sortedPlayers.Count; i++)
         {
             if (sortedPlayers[i] == player)
@@ -143,43 +174,32 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
             }
         }
 
+        Debug.LogError($"TryGetCompactedIndex: Player {player.PlayerId} not found after sorting.");
         return false;
     }
 
-    // プレイヤーとしてセッションから切断
+    //--------------------------------------------------------------------------------
+    // Misc
+    //--------------------------------------------------------------------------------
     public void DisconnectFromSession()
     {
-        // Runnerインスタンスがnullでないことを確認
         if (Runner == null)
         {
-            Debug.LogWarning("NetworkRunner is null. Cannot perform shutdown.");
+            Debug.LogWarning("NetworkRunner is null. Cannot shutdown.");
             return;
         }
-
-        // Runnerがすでにシャットダウン中か確認
         if (!Runner.IsRunning)
         {
-            Debug.LogWarning("NetworkRunner is not running. Shutdown already in progress or not connected.");
+            Debug.LogWarning("NetworkRunner is not running.");
             return;
         }
-
-        // 問題がなければシャットダウンを実行
         Runner.Shutdown(shutdownReason: ShutdownReason.Ok);
     }
 
-    public void OnSceneLoadStart(NetworkRunner runner)
-    {
-        Debug.Log("[Fusion] Scene load started");
-    }
+    public void OnSceneLoadStart(NetworkRunner runner) => Debug.Log("[Fusion] Scene load started");
+    public void OnSceneLoadDone(NetworkRunner runner) => Debug.Log("[Fusion] Scene load done");
 
-    public void OnSceneLoadDone(NetworkRunner runner)
-    {
-        Debug.Log("[Fusion] Scene load done");
-    }
-
-    //--------------------------------------------------------------------------------
-    // Empty Callbacks
-    //--------------------------------------------------------------------------------
+    // Empty callbacks
     public void OnConnectedToServer(NetworkRunner runner) { }
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }

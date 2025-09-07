@@ -6,6 +6,7 @@ public class NetworkGameManager : MonoBehaviour
     public static NetworkGameManager Instance { get; private set; }
 
     [SerializeField] private NetworkPrefabRef playerPrefab;
+    [SerializeField] private GamePlayingManager _gamePlayingManager;
 
     private Vector3 _spawnPosition = Vector3.zero;
 
@@ -25,12 +26,20 @@ public class NetworkGameManager : MonoBehaviour
         }
     }
 
-    public void SendGameStartRequest()
+    public void OnStartGameButtonClicked()
     {
-        if (GlobalRegistry.Instance.TryGetNetworkPlayerManager(out var manager))
+        StartGame();
+    }
+
+    public void StartGame()
+    {
+        if (!GlobalRegistry.Instance.TryGetNetworkPlayerManager(out var manager))
         {
-            manager.RequestDecidePlayerDeviceState();
+            Debug.LogError("Not found NetworkPlayerManager");
+            return;
         }
+        manager.RequestStartGame();
+        _gamePlayingManager.Initialize();
     }
 
     public void SpawnPlayer(NetworkRunner runner, PlayerRef inputAuthority)

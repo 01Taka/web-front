@@ -10,14 +10,21 @@ public class GamePlayingManager : MonoBehaviour
     [SerializeField] private HordeSpawner _hordeSpawner;
     [SerializeField] private BossId _bossId;
     [SerializeField] private ScoreManager _scoreManager;
+    [SerializeField] private DeviceStateManager _deviceStateManager;
 
     private TimerManager _timerManager;
     private GameManager _gameManager;
     private bool _isInitialized = false;
 
-    // この部分はコンポーネントの初期化として一度だけ実行する
-    private bool Initialize()
+    public bool Initialize()
     {
+        if (_isInitialized)
+        {
+            Debug.LogWarning("Already Initialized");
+            return true;
+        }
+        Debug.Log("Initialize Game");
+
         // TimerManagerのインスタンスを生成
         _timerManager = new TimerManager(_gameSetting.TimeLimit);
         // イベントリスナーの登録（ゲームのライフサイクルを通して共通）
@@ -28,6 +35,7 @@ public class GamePlayingManager : MonoBehaviour
 
         if (SceneComponentManager.Instance.AttackManager.IsActiveTestMode)
         {
+            _isInitialized = true;
             return true;
         }
 
@@ -55,21 +63,24 @@ public class GamePlayingManager : MonoBehaviour
             return false;
         }
 
+        _isInitialized = true;
         return true;
     }
 
     // ゲーム開始時に毎回実行される初期化
     public void StartGame(GameManager gameManager)
     {
-        if (!_isInitialized)
+        if (_deviceStateManager.CurrentDeviceState != DeviceState.Host)
         {
-            if (!Initialize())
-            {
-                Debug.LogError("Game initialization failed. Aborting StartGame.");
-                this.enabled = false;
-                return;
-            }
-            _isInitialized = true;
+            Debug.LogError("Only the host can start the game.");
+            return;
+        }
+
+        if (!_isInitialized && !Initialize())
+        {
+            Debug.LogError("Game initialization failed. Aborting StartGame.");
+            this.enabled = false;
+            return;
         }
 
         _gameManager = gameManager;

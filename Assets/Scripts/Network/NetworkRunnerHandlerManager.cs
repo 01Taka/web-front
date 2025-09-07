@@ -15,13 +15,21 @@ public class NetworkRunnerHandlerManager : MonoBehaviour
     [SerializeField] private NetworkRunnerHandler _runnerHandlerPrefab;
 
     [SerializeField] private int _peerCount = 1;
+    [SerializeField] private NetworkProjectConfigAsset _configAsset;
 
     private List<NetworkRunnerHandler> _activeRunners = new List<NetworkRunnerHandler>();
 
     public async Task StartGame(string sessionName)
     {
         Debug.Log($"StartSession: {sessionName}");
-        await StartMultiplePeers(sessionName, _peerCount);
+#if UNITY_EDITOR
+        // Unityエディタでのみ複数のピアを許可
+        int peerCount = _configAsset.Config.PeerMode == NetworkProjectConfig.PeerModes.Single ? 1 : _peerCount;
+#else
+    // ビルドされたゲームでは常に単一ピアに強制
+    int peerCount = 1;
+#endif
+        await StartMultiplePeers(sessionName, peerCount);
     }
 
     // ゲームセッションを開始するための公開メソッド
