@@ -3,9 +3,6 @@ using UnityEngine;
 
 public class NetworkPlayerController : NetworkBehaviour
 {
-    [Networked, OnChangedRender(nameof(OnDeviceStateChanged))]
-    public DeviceState PlayerDeviceState { get; set; }
-
     // MonoBehaviour
     private InputAttackHandler _inputAttackHandler;
     // NetworkBehaviour
@@ -16,14 +13,9 @@ public class NetworkPlayerController : NetworkBehaviour
 
     public override void Spawned()
     {
-        bool isLocalMasterClient = SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(Runner.LocalPlayer);
-        Debug.Log($"Local: {Runner.LocalPlayer}, State: {Object.StateAuthority}, Input: {Object.InputAuthority}, IsMasterClient: {isLocalMasterClient}", this);
+        Debug.Log($">>> Spawned player: {Runner.LocalPlayer}");
 
-        if (Object.InputAuthority == null || Object.InputAuthority.IsNone)
-        {
-            Debug.LogError("InputAuthority is none");
-            return;
-        }
+        bool isLocalMasterClient = SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(Runner.LocalPlayer);
 
         if (HasStateAuthority)
         {
@@ -31,27 +23,14 @@ public class NetworkPlayerController : NetworkBehaviour
             {
                 TransferStateAuthority();
             }
-
-            DeviceState deviceState = SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(Object.InputAuthority)
-                    ? DeviceState.Host
-                    : DeviceState.Client;
-
-            PlayerDeviceState = deviceState;
         }
 
         if (HasInputAuthority)
         {
             SetupAttackSystem();
         }
-    }
 
-    private void OnDeviceStateChanged()
-    {
-        if (HasInputAuthority)
-        {
-            Debug.Log($"DeviceState of {Runner.LocalPlayer} changed to {PlayerDeviceState}");
-            DeviceStateManager.Instance.SetDeviceState(PlayerDeviceState);
-        }
+        Debug.Log($"<<< Spawned player initialization complete: {Runner.LocalPlayer}");
     }
 
     private void TransferStateAuthority()

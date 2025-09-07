@@ -10,16 +10,13 @@ public class NetworkRunnerHandler : MonoBehaviour
     private NetworkRunner _runnerPrefab;
     private NetworkRunner _runner;
 
-    // 非同期処理の完了を待つためのTaskCompletionSource
-    private TaskCompletionSource<bool> _initializationTcs;
-
     public async Task StartGame(string gameSceneName, string sessionName, NetworkRunner runnerPrefab)
     {
-        Debug.Log("StartGame");
+        Debug.Log("Starting game.");
 
         if (_runner != null)
         {
-            Debug.LogWarning("ゲームは既に開始されています。");
+            Debug.LogWarning("Game has already started.");
             return;
         }
 
@@ -33,19 +30,19 @@ public class NetworkRunnerHandler : MonoBehaviour
         _sessionName = sessionName;
         _gameSceneName = gameSceneName;
 
-        // 初期化の完了を待つためのTaskを準備
-        _initializationTcs = new TaskCompletionSource<bool>();
-
         try
         {
             await InitializeAndConnect();
+            Debug.Log("Initialization and connection complete.");
+            DeviceStateManager.Instance.SetDeviceState(DeviceState.Online);
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Unhandled exception in StartGame(): {ex}");
+            Debug.LogError($"An unexpected error occurred while starting the game: {ex.Message}");
             if (_runner != null)
             {
                 await _runner.Shutdown();
+                _runner = null;
             }
         }
     }
@@ -59,39 +56,30 @@ public class NetworkRunnerHandler : MonoBehaviour
         {
             GameMode = GameMode.Shared,
             SessionName = _sessionName,
+            SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         };
 
-        try
-        {
-            var result = await _runner.StartGame(startArgs);
+        var result = await _runner.StartGame(startArgs);
 
-            if (!result.Ok)
-            {
-                Debug.LogError($"Failed to start game: {result.ShutdownReason}");
-                return;
-            }
-
-            if (_runner.IsSharedModeMasterClient)
-            {
-                await _runner.LoadScene(_gameSceneName);
-                Debug.Log($"Master Client has loaded the scene: {_gameSceneName}");
-            }
-        }
-        catch (Exception ex)
+        if (!result.Ok)
         {
-            // 予期せぬ例外が発生した場合
-            Debug.LogError($"Unhandled exception during initialization: {ex}");
-            // 例外を通知してタスクを失敗させる
-            _initializationTcs.TrySetException(ex);
+            Debug.LogError($"Failed to start game. Reason: {result.ShutdownReason}");
             return;
         }
-        finally
+
+        if (_runner.IsSharedModeMasterClient)
         {
-            // 初期化が完了したことを通知 (成功または失敗)
-            // ここに到達すれば、必ずタスクが完了する
-            if (!_initializationTcs.Task.IsCompleted)
+            Debug.Log($">>> Master Client has started loading a scene: {_gameSceneName}");
+
+            try
             {
-                _initializationTcs.TrySetResult(true);
+                await _runner.LoadScene(_gameSceneName);
+                Debug.Log($"<<< Master Client has loaded the scene: {_gameSceneName}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to load scene: {ex.Message}");
+                throw;
             }
         }
     }

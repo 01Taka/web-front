@@ -173,8 +173,7 @@ public class GamePlayingManager : MonoBehaviour
         count = 0;
         try
         {
-            var networkPlayerManager = GlobalRegistry.Instance?.GetNetworkPlayerManager();
-            if (networkPlayerManager != null)
+            if (GlobalRegistry.Instance.TryGetNetworkPlayerManager(out NetworkPlayerManager networkPlayerManager))
             {
                 count = networkPlayerManager.PlayerCount;
                 return count > 0;

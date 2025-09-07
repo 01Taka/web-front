@@ -1,50 +1,35 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine.Events; // Add this using directive for UnityEvent
+using UnityEngine.Events;
 
 public class HordeSpawner : MonoBehaviour
 {
-    // === Fields ===
     [Header("Spawn Settings")]
-    [Tooltip("The enemy prefab to be spawned.")]
-    [SerializeField] private GameObject _enemyPrefab;
-
+    [SerializeField] private HordeEnemy _enemyPrefab;
     [SerializeField] private Transform _parent;
-
-    [Tooltip("The start position of the enemy spawn line.")]
     [SerializeField] private Transform _startPoint;
-
-    [Tooltip("The end position of the enemy spawn line.")]
     [SerializeField] private Transform _endPoint;
-
-    [Tooltip("The target for enemies to pursue.")]
     [SerializeField] private Transform _target;
-
-    [Tooltip("The time in seconds until the next wave (wave interval).")]
     [SerializeField] private float _spawnInterval = 3f;
-
-    [Tooltip("The number of enemies to spawn in a single wave.")]
     [SerializeField] private int _enemiesPerWave = 5;
+    [SerializeField] private int _initialPoolSize = 20;
 
-    // --- UnityEvent for external communication ---
     [Header("Events")]
-    [Tooltip("Invoked when a horde enemy is defeated.")]
     public UnityEvent OnHordeEnemyKilled;
 
-    // === Private Variables ===
-    private List<GameObject> _spawnedEnemies = new List<GameObject>();
+    private ObjectPool<HordeEnemy> _enemyPool;
     private Coroutine _spawnCoroutine;
 
-    // === Methods ===
     private void Start()
     {
         if (_target == null)
         {
             Debug.LogWarning("Target is not set. Disabling the spawner.");
-            this.enabled = false;
+            enabled = false;
             return;
         }
+
+        _enemyPool = new ObjectPool<HordeEnemy>(_enemyPrefab, _initialPoolSize, _parent);
     }
 
     public void StartSpawn()
@@ -61,7 +46,6 @@ public class HordeSpawner : MonoBehaviour
         {
             StopCoroutine(_spawnCoroutine);
             _spawnCoroutine = null;
-            CleanUpEnemies();
         }
     }
 
@@ -79,36 +63,24 @@ public class HordeSpawner : MonoBehaviour
         for (int i = 0; i < _enemiesPerWave; i++)
         {
             Vector3 spawnPos = GetRandomPointOnLine(_startPoint.position, _endPoint.position);
-            GameObject enemyObj = Instantiate(_enemyPrefab, spawnPos, Quaternion.identity, _parent);
+            HordeEnemy enemy = _enemyPool.Get();
 
-            if (enemyObj.TryGetComponent<HordeEnemy>(out HordeEnemy hordeEnemy))
-            {
-                hordeEnemy.SetTarget(_target);
-                // Subscribe to the enemy's death action to trigger our own event
-                hordeEnemy.AddDeathAction((DeathReason deathReason) => OnDeathHordeEnemy(enemyObj, deathReason));
-            }
-            else
-            {
-                Debug.LogWarning("The spawned enemy prefab does not have a HordeEnemy component.");
-            }
+            enemy.transform.position = spawnPos;
+            enemy.transform.rotation = Quaternion.identity;
+            enemy.SetTarget(_target);
 
-            _spawnedEnemies.Add(enemyObj);
+            // プールに返却するコールバック登録
+            enemy.AddDeathAction((DeathReason reason) => OnDeathHordeEnemy(enemy, reason));
         }
     }
 
-    private void OnDeathHordeEnemy(GameObject enemy, DeathReason deathReason)
+    private void OnDeathHordeEnemy(HordeEnemy enemy, DeathReason reason)
     {
-        // Remove the enemy from the list
-        _spawnedEnemies.Remove(enemy);
-
-        if (deathReason == DeathReason.PlayerDefeated)
+        if (reason == DeathReason.PlayerDefeated)
         {
-            // Invoke the UnityEvent to notify other systems
             OnHordeEnemyKilled.Invoke();
         }
-
-        // Destroy the enemy object
-        Destroy(enemy);
+        _enemyPool.ReturnToPool(enemy);
     }
 
     private Vector3 GetRandomPointOnLine(Vector3 start, Vector3 end)
@@ -117,20 +89,8 @@ public class HordeSpawner : MonoBehaviour
         return Vector3.Lerp(start, end, t);
     }
 
-    public void CleanUpEnemies()
-    {
-        foreach (var enemy in _spawnedEnemies)
-        {
-            if (enemy != null)
-            {
-                Destroy(enemy);
-            }
-        }
-        _spawnedEnemies.Clear();
-    }
     private void OnDisable()
     {
         OnHordeEnemyKilled.RemoveAllListeners();
     }
 }
-

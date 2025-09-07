@@ -10,7 +10,7 @@ public class OverloadFistAttack : BossAttackBase
     [SerializeField] private MechanicalSpiderLegPart[] _legParts; // インスペクターで設定
 
     // 爆発エフェクトとサウンドエフェクト
-    [SerializeField] private GameObject _explosionPrefab; // 爆発のプレハブ
+    [SerializeField] private ExplosionType _explosionType; // 爆発エフェクトの種類
     [SerializeField] protected float _explosionSize;
     [SerializeField] private AudioClip _explosionSound; // 爆発のAudioClip
 
@@ -133,17 +133,9 @@ public class OverloadFistAttack : BossAttackBase
     /// <param name="port">攻撃ポート</param>
     private void SpawnExplosion(BossAttackPort port)
     {
-        // プレハブが設定されているか確認
-        if (_explosionPrefab != null)
-        {
-            int index = MechanicalSpiderUtils.ConvertToPortToIndex(port);
-            Vector3 spawnPosition = _legParts[index].transform.position;
-
-            // 爆発プレハブを生成
-            GameObject explosion = Instantiate(_explosionPrefab, spawnPosition, Quaternion.identity);
-            explosion.transform.localScale = Vector3.one * _explosionSize;
-        }
-
+        int index = MechanicalSpiderUtils.ConvertToPortToIndex(port);
+        Vector3 spawnPosition = _legParts[index].transform.position;
+        ExplosionEffectPoolManager.Instance.PlayExplosion(spawnPosition, _explosionSize, _explosionType);
         SoundManager.Instance.PlayEffect(_explosionSound);
     }
 }

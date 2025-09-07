@@ -17,8 +17,8 @@ MonoBehaviour:
   enemyScale: 0.3
   adjustAngle: 90
   explosionDistance: 80
-  DestoryEffectPrefab: {fileID: 3668804249620944223, guid: d365ae20269bc4b4d99628badaf0dd4c, type: 3}
-  DestoryEffectSize: 0.5
+  DestroyExplosionType: 0
+  DestroyEffectSize: 0.7
   damageSound: {fileID: 0}
   destroySound: {fileID: 8300000, guid: a1ccad3911caf7f4cbf9e86b358e41fc, type: 3}
   explodeSound: {fileID: 0}

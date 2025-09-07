@@ -10,7 +10,9 @@ using System;
 /// </summary>
 public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
 {
-    [Networked] public PlayerRef HostPlayerRef { get; set; }
+    [Networked]
+    [UnityNonSerialized]
+    public NetworkBool IsDecidedDeviceState { get; set; }
 
     [Networked, Capacity(8)]
     private NetworkDictionary<PlayerRef, int> PlayerIndexes => default;
@@ -24,6 +26,30 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
     public bool IsOnline => Runner != null && Runner.IsRunning;
     public bool IsMasterClient => Runner != null && Runner.IsRunning && Runner.IsSharedModeMasterClient;
 
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void Rpc_DecidePlayerDeviceState()
+    {
+        if (Runner.IsSharedModeMasterClient)
+        {
+            DeviceStateManager.Instance.SetDeviceState(DeviceState.Host);
+        } else
+        {
+            DeviceStateManager.Instance.SetDeviceState(DeviceState.Client);
+        }
+    }
+
+    public void RequestDecidePlayerDeviceState()
+    {
+        if (!HasStateAuthority)
+        {
+            Debug.LogWarning("You must have the state permission to call CallRpcDecidePlayerDeviceState.");
+            return;
+        }
+        IsDecidedDeviceState = true;
+        Rpc_DecidePlayerDeviceState();
+    }
+
     //--------------------------------------------------------------------------------
     // Player Handling
     //--------------------------------------------------------------------------------
@@ -31,6 +57,12 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
     {
         if (runner.IsSharedModeMasterClient)
         {
+            if (IsDecidedDeviceState)
+            {
+                Debug.LogError($"[PlayerJoined] ID:{player.PlayerId} Å® Player device state is already decided. Cannot Spawn.");
+                return;
+            }
+
             NetworkGameManager.Instance.SpawnPlayer(runner, player);
 
             int newIndex = GetNextAvailableIndex();
@@ -135,6 +167,16 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
         Runner.Shutdown(shutdownReason: ShutdownReason.Ok);
     }
 
+    public void OnSceneLoadStart(NetworkRunner runner)
+    {
+        Debug.Log("[Fusion] Scene load started");
+    }
+
+    public void OnSceneLoadDone(NetworkRunner runner)
+    {
+        Debug.Log("[Fusion] Scene load done");
+    }
+
     //--------------------------------------------------------------------------------
     // Empty Callbacks
     //--------------------------------------------------------------------------------
@@ -147,8 +189,6 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) { }
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
-    public void OnSceneLoadStart(NetworkRunner runner) { }
-    public void OnSceneLoadDone(NetworkRunner runner) { }
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }

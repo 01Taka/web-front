@@ -38,6 +38,22 @@ public class GlobalRegistry : MonoBehaviour
         return _networkPlayerManager;
     }
 
+    public bool TryGetNetworkPlayerManager(out NetworkPlayerManager networkPlayerManager)
+    {
+        if (_networkPlayerManager == null)
+        {
+            _networkPlayerManager = FindFirstObjectByType<NetworkPlayerManager>();
+            if (!_networkPlayerManager)
+            {
+                networkPlayerManager = null;
+                Debug.LogError("Not found NetworkPlayerManager");
+                return false;
+            }
+        }
+        networkPlayerManager = _networkPlayerManager;
+        return true;
+    }
+
     public StateAuthorityManager GetStateAuthorityManager()
     {
         if (_stateAuthorityManager == null)

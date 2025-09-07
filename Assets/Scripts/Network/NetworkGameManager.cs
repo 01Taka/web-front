@@ -25,6 +25,14 @@ public class NetworkGameManager : MonoBehaviour
         }
     }
 
+    public void SendGameStartRequest()
+    {
+        if (GlobalRegistry.Instance.TryGetNetworkPlayerManager(out var manager))
+        {
+            manager.RequestDecidePlayerDeviceState();
+        }
+    }
+
     public void SpawnPlayer(NetworkRunner runner, PlayerRef inputAuthority)
     {
         if (runner == null)

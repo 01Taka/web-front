@@ -18,16 +18,7 @@ public class MechanicalSpiderBomSettings : ScriptableObject
     [Tooltip("点滅の終了頻度 (秒)")]
     public float EndBlinkInterval = 0.1f;
 
-    [Header("爆発設定 (時間切れ)")]
-    public AudioClip BomClip;
-    [Tooltip("爆発時に生成するプレハブ")]
-    public GameObject ExplosionPrefab;
-
     [Header("爆発設定 (破壊後)")]
-    [Tooltip("破壊後に目標到達した時の爆発音")]
-    public AudioClip ExplosionClipOnDestroy;
-    [Tooltip("破壊後に目標到達した時の爆発プレハブ")]
-    public GameObject ExplosionPrefabOnDestroy;
     [Tooltip("爆発までの時間に加算するランダム値の範囲 (秒)")]
     public float ExplosionTimeRandomRange = 0.5f;
     [Tooltip("爆発時にターゲット座標からランダムにずらす半径")]
@@ -40,6 +31,9 @@ public class MechanicalSpiderBomSettings : ScriptableObject
     public float SeekSpeedOnDestroyed = 5f;
 
     [Header("サウンド設定")]
+    public AudioClip BomClip;
+    public AudioClip ExplosionClipOnDestroy;
     public AudioClip HitClip;
+
     public float HitClipVolume = 0.5f;
 }

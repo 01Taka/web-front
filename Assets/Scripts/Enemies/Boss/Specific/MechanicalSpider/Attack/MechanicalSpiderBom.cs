@@ -88,7 +88,8 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
 
             if (Vector2.Distance(transform.position, _targetPositionOnDestroyed) < 0.1f)
             {
-                InstantiateExplosion(_settings.ExplosionPrefabOnDestroy, _settings.ExplosionClipOnDestroy, _targetPositionOnDestroyed);
+                InstantiateExplosion(ExplosionType.Default, _settings.ExplosionClipOnDestroy, _targetPositionOnDestroyed);
+
                 _onTargetReached.Invoke();
                 Destroy(gameObject);
             }
@@ -98,13 +99,10 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
     /// <summary>
     /// 爆発エフェクトとサウンドを生成する汎用メソッド
     /// </summary>
-    private void InstantiateExplosion(GameObject explosionPrefab, AudioClip explosionClip, Vector2 position)
+    private void InstantiateExplosion(ExplosionType explosionType, AudioClip explosionClip, Vector2 position)
     {
-        if (explosionPrefab != null)
-        {
-            Vector3 explosionPosition = (Vector3)position + (Vector3)Random.insideUnitCircle * _settings.ExplosionRadius;
-            Instantiate(explosionPrefab, explosionPosition, Quaternion.identity);
-        }
+        Vector3 explosionPosition = (Vector3)position + (Vector3)Random.insideUnitCircle * _settings.ExplosionRadius;
+        ExplosionEffectPoolManager.Instance.PlayExplosion(explosionPosition, 1, explosionType);
 
         if (explosionClip != null)
         {
@@ -157,7 +155,7 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
 
         if (_healthManager.IsAlive)
         {
-            InstantiateExplosion(_settings.ExplosionPrefab, _settings.BomClip, transform.position);
+            InstantiateExplosion(ExplosionType.Blue, _settings.BomClip, transform.position);
             _onExplosion.Invoke();
             Destroy(gameObject);
         }
