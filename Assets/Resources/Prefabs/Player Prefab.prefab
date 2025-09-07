@@ -11,8 +11,6 @@ GameObject:
   - component: {fileID: 3748707566080714909}
   - component: {fileID: 2068008836443086759}
   - component: {fileID: 5610388417637080841}
-  - component: {fileID: 4276024865571250562}
-  - component: {fileID: 723805068355115678}
   - component: {fileID: 9080820521678360722}
   m_Layer: 0
   m_Name: Player Prefab
@@ -48,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15381e806d2d5de499e2934bcb02db17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _PlayerDeviceState: 0
+  inputConfig: {fileID: 11400000, guid: 76009b0174f901f40b80f9fb4b0359a1, type: 2}
 --- !u!114 &5610388417637080841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59,33 +57,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b682973dd9f9e042965a65ad6154e4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &4276024865571250562
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6404691183601468928}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90129af0a1203fc4287d68833b34dc73, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  touchHandler: {fileID: 723805068355115678}
-  centerPosition: {x: 0, y: 0, z: 0}
-  inputConfig: {fileID: 11400000, guid: 76009b0174f901f40b80f9fb4b0359a1, type: 2}
---- !u!114 &723805068355115678
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6404691183601468928}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a93ece1c850bd38418ae1f992c40b322, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &9080820521678360722

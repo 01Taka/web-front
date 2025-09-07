@@ -59,6 +59,8 @@ public class AttackManager : MonoBehaviour
 
     public void HandleAttack(AttackData data)
     {
+        Debug.Log($"Handle Attack: {data.AttackerRef}, {data.Type}");
+
         // 1. 早期リターン: 必須コンポーネントのチェック
         if (projectileSpawner == null)
         {

@@ -3,78 +3,102 @@ using UnityEngine;
 
 public class NetworkPlayerController : NetworkBehaviour
 {
-    // MonoBehaviour
-    private InputAttackHandler _inputAttackHandler;
-    // NetworkBehaviour
+    [SerializeField] private InputAttackConfig inputConfig;
+
     private AttackRequestSender _attackSender;
 
     private int _playerLevel = 1;
     private Direction _upDirection = Direction.Up;
+    private Vector3 _centerPosition = Vector3.zero;
 
     public override void Spawned()
     {
-        Debug.Log($">>> Spawned player: {Runner.LocalPlayer}, InputAuthority: {Object.InputAuthority}", this);
+        Debug.Log($"---> Spawned player: {Runner.LocalPlayer}, InputAuthority: {Object.InputAuthority}", this);
 
         bool isLocalMasterClient = SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(Runner.LocalPlayer);
 
-        if (HasStateAuthority)
+        // 状態権限の移行を試行
+        if (HasStateAuthority && !isLocalMasterClient)
         {
-            if (!isLocalMasterClient)
-            {
-                TransferStateAuthority();
-            }
+            TransferStateAuthority();
         }
 
+        // 入力権限を持つプレイヤーのみがローカルでアタックシステムをセットアップ
         if (HasInputAuthority)
         {
             SetupAttackSystem();
         }
 
-        Debug.Log($"<<< Spawned player initialization complete: {Runner.LocalPlayer}");
+        Debug.Log($"<--- Spawned player initialization complete: {Runner.LocalPlayer}");
     }
 
     private void TransferStateAuthority()
     {
-        if (HasStateAuthority &&
-            !SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(Runner.LocalPlayer))
+        // GlobalRegistryのインスタンスが有効かチェック
+        if (GlobalRegistry.Instance == null)
         {
-            StateAuthorityManager manager = GlobalRegistry.Instance.GetStateAuthorityManager();
-            if (manager != null)
-            {
-                Object.ReleaseStateAuthority();
-                manager.RequestStateAuthorityTransferToMaster(Object.Id);
-            }
-            else
-            {
-                Debug.LogError("StateAuthorityManager not found.");
-            }
+            Debug.LogError("GlobalRegistry instance is not available. Cannot transfer state authority.", this);
+            return;
         }
+
+        StateAuthorityManager manager = GlobalRegistry.Instance.GetStateAuthorityManager();
+        if (manager == null)
+        {
+            Debug.LogError("StateAuthorityManager not found in GlobalRegistry. Cannot transfer state authority.", this);
+            return;
+        }
+
+        // 権限の放棄と移行リクエスト
+        Object.ReleaseStateAuthority();
+        manager.RequestStateAuthorityTransferToMaster(Object.Id);
+        Debug.Log($"State authority for NetworkObject {Object.Id} has been released and transfer requested to Master Client.", this);
     }
 
     private void SetupAttackSystem()
     {
+        // 必須コンポーネントの存在チェック
         _attackSender = GetComponent<AttackRequestSender>();
-        _inputAttackHandler = GetComponent<InputAttackHandler>();
-
         if (_attackSender == null)
         {
-            Debug.LogError("AttackRequestSender component missing.");
+            Debug.LogError("AttackRequestSender component missing on this GameObject. Attack system cannot be set up.", this);
             return;
         }
 
-        if (_inputAttackHandler == null)
+        // SceneComponentManagerのインスタンスチェック
+        if (SceneComponentManager.Instance == null)
         {
-            Debug.LogError("InputAttackHandler component missing.");
+            Debug.LogError("SceneComponentManager instance is not available. Attack system setup aborted.", this);
+            return;
+        }
+
+        // 攻撃ハンドラーのセットアップ
+        InputAttackHandler inputAttackHandler = gameObject.AddComponent<InputAttackHandler>();
+        if (inputAttackHandler == null)
+        {
+            Debug.LogError("Failed to add InputAttackHandler component.", this);
+            return;
+        }
+
+        // タッチハンドラーのセットアップ
+        BetterTouchHandler touchHandler = gameObject.AddComponent<BetterTouchHandler>();
+        if (touchHandler == null)
+        {
+            Debug.LogError("Failed to add BetterTouchHandler component.", this);
             return;
         }
 
         _attackSender.Setup(_playerLevel);
 
-        _inputAttackHandler.Setup(
+        inputAttackHandler.Setup(
+            inputConfig,
             _attackSender,
+            touchHandler,
             SceneComponentManager.Instance.AttackRecognizer,
             SceneComponentManager.Instance.GameCamera,
+            _centerPosition,
             DirectionExtensions.ToVector2(_upDirection)
         );
+
+        Debug.Log("Attack system successfully set up for the local player.", this);
     }
 }

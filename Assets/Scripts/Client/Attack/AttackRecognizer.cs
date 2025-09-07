@@ -7,6 +7,8 @@ public class AttackRecognizer : MonoBehaviour, IAttackRecognizer
     {
         List<AttackInputData> results = new();
 
+        Debug.Log("Start recognizing attacks.");
+
         if (touchData.CicularGestureAmount > inputConfig.minOrbWeaverAmount)
         {
             results.Add(new AttackInputData

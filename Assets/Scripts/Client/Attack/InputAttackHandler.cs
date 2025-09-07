@@ -2,23 +2,21 @@ using UnityEngine;
 
 public class InputAttackHandler : MonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private BetterTouchHandler touchHandler;
-    [SerializeField] private Vector3 centerPosition;
-    private Vector3 bottomCenterPosition;
-
     [Header("Config")]
-    [SerializeField] private InputAttackConfig inputConfig;
-
+    private InputAttackConfig inputConfig;
+    private BetterTouchHandler touchHandler;
+    private Vector3 centerPosition;
     private IAttackRecognizer attackRecognizer;
     private IAttackSender attackSender;
     private Camera gameCamera;
     private Vector2 swipeForwardDirection;
 
+    private Vector3 bottomCenterPosition;
+
     private readonly TouchInputState touchState = new TouchInputState();
     private readonly CircularGestureTracker circularGestureTracker = new CircularGestureTracker(3f);
 
-    public void Setup(IAttackSender attackSender, AttackRecognizer attackRecognizer, Camera gameCamera, Vector2 swipeForwardDirection)
+    public void Setup(InputAttackConfig inputConfig, IAttackSender attackSender, BetterTouchHandler touchHandler, AttackRecognizer attackRecognizer, Camera gameCamera, Vector3 centerPosition, Vector2 swipeForwardDirection)
     {
         if (attackSender == null || attackRecognizer == null || gameCamera == null)
         {
@@ -27,18 +25,6 @@ public class InputAttackHandler : MonoBehaviour
             return;
         }
 
-        this.enabled = true;
-        this.attackRecognizer = attackRecognizer;
-        this.attackSender = attackSender;
-        this.gameCamera = gameCamera;
-        this.swipeForwardDirection = swipeForwardDirection;
-        this.bottomCenterPosition = CalculateBottomCenterFromSwipeDirection();
-
-        Debug.Log($"[InputAttackHandler] Bottom center world position: {bottomCenterPosition}");
-    }
-
-    private void OnEnable()
-    {
         if (touchHandler == null)
         {
             Debug.LogError("touchHandler is not assigned. Disabling InputAttackHandler.");
@@ -49,6 +35,18 @@ public class InputAttackHandler : MonoBehaviour
         touchHandler.OnTouchStartEvent += OnTouchStart;
         touchHandler.OnTouchEndEvent += OnTouchEnd;
         touchHandler.OnTouchMoveEvent += OnTouchMove;
+
+        this.enabled = true;
+        this.inputConfig = inputConfig;
+        this.touchHandler = touchHandler;
+        this.attackRecognizer = attackRecognizer;
+        this.attackSender = attackSender;
+        this.gameCamera = gameCamera;
+        this.centerPosition = centerPosition;
+        this.swipeForwardDirection = swipeForwardDirection;
+        this.bottomCenterPosition = CalculateBottomCenterFromSwipeDirection();
+
+        Debug.Log($"[InputAttackHandler] Bottom center world position: {bottomCenterPosition}");
     }
 
     private void OnDisable()
@@ -78,6 +76,7 @@ public class InputAttackHandler : MonoBehaviour
 
     private void OnTouchEnd(Vector2 screenPos)
     {
+        Debug.Log("Attack >>>>> OnTouchEnd");
         if (!touchState.IsTouching || attackSender == null) return;
 
         touchState.EndTouch(screenPos);
@@ -128,6 +127,7 @@ public class InputAttackHandler : MonoBehaviour
 
     private void SendAttack(AttackInputData attack)
     {
+        Debug.Log($"Send Attack: {attack.Type}");
         attackSender.SendAttack(attack);
     }
 
