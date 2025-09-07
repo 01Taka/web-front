@@ -7,7 +7,6 @@ public class NetworkRunnerHandler : MonoBehaviour
 {
     private string _gameSceneName;
     private string _sessionName;
-    private NetworkRunner _runnerPrefab;
     private NetworkRunner _runner;
 
     public async Task StartGame(string gameSceneName, string sessionName, NetworkRunner runnerPrefab)
@@ -26,22 +25,19 @@ public class NetworkRunnerHandler : MonoBehaviour
             return;
         }
 
-        _runnerPrefab = runnerPrefab;
         _sessionName = sessionName;
         _gameSceneName = gameSceneName;
 
         try
         {
-            // awaitをつけると以下の関数は終わらない処理であることに注意
-            InitializeAndConnect();
+            _runner = Instantiate(runnerPrefab);
+            _runner.ProvideInput = true;
 
-            DeviceStateManager deviceStateManager = GetComponentInParent<DeviceStateManager>();
-            if (!deviceStateManager)
-            {
-                Debug.LogError("Not Found DeviceStateManager In Parent");
-                return;
-            }
-            deviceStateManager.SetDeviceState(DeviceState.Online);
+            SetSpawnCallback();
+
+            await InitializeAndConnect();
+
+            SetDeviceStateOnline();
         }
         catch (Exception ex)
         {
@@ -56,9 +52,6 @@ public class NetworkRunnerHandler : MonoBehaviour
 
     private async Task InitializeAndConnect()
     {
-        _runner = Instantiate(_runnerPrefab);
-        _runner.ProvideInput = true;
-
         var startArgs = new StartGameArgs
         {
             GameMode = GameMode.Shared,
@@ -66,30 +59,63 @@ public class NetworkRunnerHandler : MonoBehaviour
             SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         };
 
+        // StartGameの実行と結果の待機
         var result = await _runner.StartGame(startArgs);
 
         if (!result.Ok)
         {
             Debug.LogError($"Failed to start game. Reason: {result.ShutdownReason}");
-            return;
+            // 呼び出し元のtry-catchブロックで処理できるように例外をスローする
+            throw new InvalidOperationException($"Failed to start game. Reason: {result.ShutdownReason}");
         }
 
         if (_runner.IsSharedModeMasterClient)
         {
-            Debug.Log($"Master Client has started loading a scene: {_gameSceneName}");
-
-            try
-            {
-                // WebGL Build後は以下の処理はゲーム終了まで終わらない
-                // これ以降に処理を書いても実行されない
-                await _runner.LoadScene(_gameSceneName);
-                Debug.Log($"Master Client has loaded a scene: {_gameSceneName}");
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Failed to load scene: {ex.Message}");
-                throw;
-            }
+            _ = LoadScene();
         }
+    }
+
+    private async Task LoadScene()
+    {
+        Debug.Log($"Master Client has started loading a scene: {_gameSceneName}");
+        await _runner.LoadScene(_gameSceneName);
+        Debug.Log($"Master Client has loaded a scene: {_gameSceneName}");
+    }
+
+    private void SetSpawnCallback()
+    {
+        // 念のため、登録する前に一度解除しておくことで、複数回の登録を防ぐ
+        SharedModeMasterClientTracker.OnTrackerSpawned -= PlayerSpawnCallback;
+        SharedModeMasterClientTracker.OnTrackerSpawned += PlayerSpawnCallback;
+    }
+
+    private void PlayerSpawnCallback(SharedModeMasterClientTracker tracker)
+    {
+        SharedModeMasterClientTracker.OnTrackerSpawned -= PlayerSpawnCallback;
+
+        if (tracker == null)
+        {
+            Debug.LogError("Tracker was null during spawn callback.");
+            return;
+        }
+
+        NetworkGameManager.Instance.SpawnPlayer(_runner);
+    }
+
+    private void SetDeviceStateOnline()
+    {
+        DeviceStateManager deviceStateManager = GetComponentInParent<DeviceStateManager>();
+        if (!deviceStateManager)
+        {
+            Debug.LogError("Not Found DeviceStateManager In Parent");
+            return;
+        }
+        deviceStateManager.SetDeviceState(DeviceState.Online);
+    }
+
+    private void OnDestroy()
+    {
+        // オブジェクトが破棄される際に、イベントの購読を確実に解除する
+        SharedModeMasterClientTracker.OnTrackerSpawned -= PlayerSpawnCallback;
     }
 }

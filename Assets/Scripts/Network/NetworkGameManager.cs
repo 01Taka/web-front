@@ -42,7 +42,7 @@ public class NetworkGameManager : MonoBehaviour
         _gamePlayingManager.Initialize();
     }
 
-    public void SpawnPlayer(NetworkRunner runner, PlayerRef inputAuthority)
+    public void SpawnPlayer(NetworkRunner runner)
     {
         if (runner == null)
         {
@@ -62,7 +62,7 @@ public class NetworkGameManager : MonoBehaviour
             return;
         }
 
-        if (inputAuthority == null || inputAuthority.IsNone)
+        if (runner.LocalPlayer == null || runner.LocalPlayer.IsNone)
         {
             Debug.LogError("Input authority is None. Spawning a player without specific input authority.");
             return;
@@ -70,7 +70,7 @@ public class NetworkGameManager : MonoBehaviour
 
         try
         {
-            NetworkObject playerObj = runner.Spawn(playerPrefab, _spawnPosition, Quaternion.identity, inputAuthority);
+            NetworkObject playerObj = runner.Spawn(playerPrefab, _spawnPosition, Quaternion.identity, runner.LocalPlayer);
 
             if (playerObj == null)
             {
@@ -78,7 +78,7 @@ public class NetworkGameManager : MonoBehaviour
             }
             else
             {
-                Debug.Log($"Player spawned with authority {inputAuthority} by {runner.LocalPlayer}.", this);
+                Debug.Log($"Player spawned: {runner.LocalPlayer}.", this);
             }
         }
         catch (System.Exception ex)

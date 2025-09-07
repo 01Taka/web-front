@@ -82,7 +82,7 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
             return;
         }
 
-        NetworkGameManager.Instance.SpawnPlayer(runner, player);
+        // NetworkGameManager.Instance.SpawnPlayer(runner, player);
 
         int newIndex = GetNextAvailableIndex();
         PlayerIndexes.Add(player, newIndex);

@@ -3008,7 +3008,7 @@ GameObject:
   - component: {fileID: 512916399}
   - component: {fileID: 512916401}
   m_Layer: 0
-  m_Name: GameNetworkHandlerManager
+  m_Name: NetworkRunnerHandlerManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8701,6 +8701,9 @@ MonoBehaviour:
   - State: 3
     Camera: {fileID: 631778493}
     Canvas: {fileID: 1335582378}
+  - State: 4
+    Camera: {fileID: 20559525}
+    Canvas: {fileID: 399106935}
   - State: 4
     Camera: {fileID: 20559525}
     Canvas: {fileID: 399106935}
