@@ -62,6 +62,7 @@ public struct AttackData
 
 public struct ProjectileSpawnParams
 {
+    public PlayerRef AttackerRef;
     public AttackType Type;
     public Vector3 Position;
     public Vector3 Direction;
@@ -72,6 +73,7 @@ public struct ProjectileSpawnParams
     public float EffectDuration;
     public float EffectInterval;
     public float EffectRadius;
+    public float ProjectileScaleRaito;
 }
 
 public interface IDamageable

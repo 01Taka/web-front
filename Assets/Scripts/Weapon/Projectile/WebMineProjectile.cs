@@ -12,9 +12,7 @@ public class WebMineProjectile : ProjectileBase
 
     protected override void OnEnemyDetected(IDamageable enemy)
     {
-        base.OnEnemyDetected(enemy);
-        DeployWeb();
-        Destroy(gameObject);
+
     }
 
     protected override void OnRangeExceeded()

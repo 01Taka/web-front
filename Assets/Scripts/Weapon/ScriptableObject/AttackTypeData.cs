@@ -5,6 +5,7 @@ public class AttackTypeData : ScriptableObject
 {
     public AttackType type;
     public GameObject projectilePrefab;
+    public float projectileScaleRaito = 1f;
     public float baseSpeed = 10f;
     public float baseDamage = 30f;
     public float range = 10f;

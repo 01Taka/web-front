@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 0
   projectilePrefab: {fileID: 5474699479343154451, guid: a259fc9d5f4ad84428293fbcd59bef9e, type: 3}
+  projectileScaleRaito: 0.25
   baseSpeed: 30
   baseDamage: 50
   range: 20

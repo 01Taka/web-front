@@ -3,7 +3,6 @@ using UnityEngine;
 public class ProjectileSpawner : MonoBehaviour
 {
     [SerializeField] private Transform _projectileParent;
-    [SerializeField] private float _projectileScaleRaito = 1f;
 
     public void SpawnProjectile(ProjectileSpawnParams spawnParams, GameObject projectilePrefab)
     {
@@ -19,6 +18,6 @@ public class ProjectileSpawner : MonoBehaviour
             return;
         }
         projectile.Initialize(spawnParams);
-        projectile.transform.localScale *= _projectileScaleRaito;
+        projectile.transform.localScale *= spawnParams.ProjectileScaleRaito;
     }
 }

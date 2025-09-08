@@ -9,6 +9,11 @@ public class VolleyBurstProjectile : ProjectileBase
         Explode();
     }
 
+    protected override void OnEnemyDetected(IDamageable damageable)
+    {
+        Explode();
+    }
+
     private void Explode()
     {
         if (explosionPrefab != null)

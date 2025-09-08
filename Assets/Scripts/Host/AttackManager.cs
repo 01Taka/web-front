@@ -154,6 +154,7 @@ public class AttackManager : MonoBehaviour
         // 6. ProjectileSpawnParamsÇÃê∂ê¨
         var spawnParams = new ProjectileSpawnParams
         {
+            AttackerRef = data.AttackerRef,
             Type = data.Type,
             Position = attackPos,
             Direction = direction,
@@ -164,6 +165,7 @@ public class AttackManager : MonoBehaviour
             EffectDuration = effectDuration,
             EffectInterval = effectInterval,
             EffectRadius = effectRadius,
+            ProjectileScaleRaito = attackConfig.projectileScaleRaito,
         };
 
         // 7. î≠éÀèàóù

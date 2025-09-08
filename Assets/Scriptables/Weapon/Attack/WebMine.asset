@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 3
   projectilePrefab: {fileID: 4367796846883710537, guid: a3f5e84adf9116d44b20fb2c2cff801e, type: 3}
+  projectileScaleRaito: 0.25
   baseSpeed: 10
   baseDamage: 12
   range: 5
@@ -22,7 +23,7 @@ MonoBehaviour:
   maxChargeAmount: 30
   maxChargeMultiplier: 3
   minRequiredCharge: 0
-  incompleteMultiplier: 0.5
+  incompleteMultiplier: 1
   usesEffects: 1
   effectDuration: 2.5
   effectInterval: 0.3
