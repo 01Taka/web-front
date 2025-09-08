@@ -48,8 +48,10 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 128
+  _spriteRenderer: {fileID: 8082976082306863437}
   webAreaPrefab: {fileID: 4398688086513304929, guid: d842c10aad1ff22469e3245838e3b5a0, type: 3}
   prefabScaleRatio: 0.25
+  _preloadCount: 5
   rotationSpeed: 180
 --- !u!212 &8082976082306863437
 SpriteRenderer:

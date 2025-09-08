@@ -20,14 +20,14 @@ MonoBehaviour:
   range: 5
   detectionRadius: 1
   usesCharge: 1
-  maxChargeAmount: 30
+  maxChargeAmount: 500
   maxChargeMultiplier: 3
   minRequiredCharge: 0
   incompleteMultiplier: 1
   usesEffects: 1
   effectDuration: 2.5
   effectInterval: 0.3
-  effectRadius: 0.6
+  effectRadius: 0.58
   spreadAngle: 0
   rangeVariance: 0
   preloadCount: 5

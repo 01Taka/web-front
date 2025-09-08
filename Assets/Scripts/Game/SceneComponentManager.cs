@@ -5,12 +5,15 @@ public class SceneComponentManager : MonoBehaviour
     public static SceneComponentManager Instance { get; private set; }
 
     [SerializeField] private Camera gameCamera;
+    [SerializeField] private Camera _clientCamera;
     [SerializeField] private AttackManager attackManager;
     [SerializeField] private AttackRecognizer attackRecognizer;
     [SerializeField] private AttackPointManager attackPointManager;
     [SerializeField] private GameManager _gameManager;
 
+
     public Camera GameCamera => gameCamera;
+    public Camera ClientCamera => _clientCamera;
     public AttackManager AttackManager => attackManager;
     public AttackRecognizer AttackRecognizer => attackRecognizer;
     public AttackPointManager AttackPointManager => attackPointManager;

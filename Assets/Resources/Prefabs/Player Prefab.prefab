@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15381e806d2d5de499e2934bcb02db17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputConfig: {fileID: 11400000, guid: 76009b0174f901f40b80f9fb4b0359a1, type: 2}
+  _attackInputSettings: {fileID: 11400000, guid: 142d60bc67ed18c4d868f64607c5d687, type: 2}
   _inputDirection: 0
 --- !u!114 &5610388417637080841
 MonoBehaviour:

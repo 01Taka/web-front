@@ -23,6 +23,6 @@ public class VolleyBurstProjectile : ProjectileBase
         VolleyExplosion explosion = _poolManager.Get(explosionPrefab, _poolParent, _preloadCount);
         explosion.transform.position = transform.position;
         explosion.transform.localScale = explosionPrefab.transform.localScale * prefabScaleRatio;
-        explosion.Initialize(spawnParams.EffectRadius, spawnParams.Damage);
+        explosion.Initialize(spawnParams.EffectRadius, spawnParams.Damage, spawnParams.ProjectileColor);
     }
 }

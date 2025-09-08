@@ -5,6 +5,7 @@ public class AttackManager : MonoBehaviour
 {
     [SerializeField] private float zPos = 0f;
     [SerializeField] private AttackDatabase attackDatabase;
+    [SerializeField] private PlayerColor _playerColor;
 
     [Header("TestOptions")]
     [SerializeField] private Transform _testAttackPoint;
@@ -25,6 +26,10 @@ public class AttackManager : MonoBehaviour
         {
             Debug.LogError("ProjectileSpawner component is missing on this GameObject.", this);
         }
+
+#if UNITY_EDITOR
+        IsActiveTestMode = true;
+#endif
     }
 
     public bool TryGetAttackPosition(PlayerRef attacker, out Vector3 attackPosition)
@@ -36,6 +41,7 @@ public class AttackManager : MonoBehaviour
             attackPosition = _testAttackPoint.position;
             return true;
         }
+
 
         if (!GlobalRegistry.Instance.GetNetworkPlayerManager().TryGetCompactedIndex(attacker, out int pointIndex))
         {
@@ -155,6 +161,8 @@ public class AttackManager : MonoBehaviour
         var spawnParams = new ProjectileSpawnParams
         {
             AttackerRef = data.AttackerRef,
+            AttackerIndex = data.AttackerIndex,
+            ProjectileColor = _playerColor.GetColor(data.AttackerIndex),
             Type = data.Type,
             Position = attackPos,
             Direction = direction,

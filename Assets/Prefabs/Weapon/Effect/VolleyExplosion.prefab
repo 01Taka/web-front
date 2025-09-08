@@ -49,6 +49,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   animationDuration: 0.18
+  spriteRenderer: {fileID: 7553076879494196900}
 --- !u!212 &7553076879494196900
 SpriteRenderer:
   m_ObjectHideFlags: 0

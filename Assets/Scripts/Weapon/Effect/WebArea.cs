@@ -6,6 +6,7 @@ public class WebArea : MonoBehaviour, IPoolable
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private float expandDuration = 0.3f;
     [SerializeField] private float shrinkDuration = 0.3f;
+    [SerializeField] private SpriteRenderer spriteRenderer;
 
     private float destroyTime;
     private float slowMultiplier;
@@ -23,13 +24,17 @@ public class WebArea : MonoBehaviour, IPoolable
         _pool = pool as ObjectPool<WebArea>;
     }
 
-    public void Initialize(float duration, float slow, float damagePerTick, float interval, float radius)
+    public void Initialize(float duration, float slow, float damagePerTick, float interval, float radius, Color color)
     {
         destroyTime = Time.time + duration;
         slowMultiplier = slow;
         tickDamage = damagePerTick;
         tickInterval = interval;
         effectRadius = radius;
+        if (spriteRenderer != null) 
+        {
+            spriteRenderer.color = color;
+        }
 
         originalScale = transform.localScale * radius;
         transform.localScale = Vector3.zero;

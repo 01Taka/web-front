@@ -2,6 +2,76 @@
     "name": "Controls",
     "maps": [
         {
+            "name": "Player",
+            "id": "9a186d2d-4c13-4126-8e47-e0ab9adb7e82",
+            "actions": [
+                {
+                    "name": "Press",
+                    "type": "Button",
+                    "id": "987cde89-1043-480c-bfac-9da5ccedf5e6",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hold",
+                    "type": "Value",
+                    "id": "0e9cd57c-81bc-40fd-bd6e-d7022ccd8a7a",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "510973cf-3737-48b1-acd7-6ce97542fa18",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Press",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d1ce8363-2187-4c59-89a5-e153eb35d4cc",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Press",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1c319779-9301-4dbf-91bc-c12cee7c2337",
+                    "path": "<Touchscreen>/primaryTouch/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e290e3f2-b1b1-4b4a-858b-e12759e3cdc8",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
             "name": "Touch",
             "id": "6e545928-8382-40ef-bb8c-e3f14bcbaecf",
             "actions": [

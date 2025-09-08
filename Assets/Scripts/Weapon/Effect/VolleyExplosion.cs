@@ -5,6 +5,7 @@ public class VolleyExplosion : MonoBehaviour, IPoolable
 {
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private float animationDuration = 0.3f;
+    [SerializeField] private SpriteRenderer spriteRenderer;
 
     private float explosionRadius;
     private float explosionDamage;
@@ -17,10 +18,14 @@ public class VolleyExplosion : MonoBehaviour, IPoolable
         _pool = pool as ObjectPool<VolleyExplosion>;
     }
 
-    public void Initialize(float radius, float damage)
+    public void Initialize(float radius, float damage, Color color)
     {
         explosionRadius = radius;
         explosionDamage = damage;
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = color;
+        }
 
         // スケールリセット
         originalScale = transform.localScale * explosionRadius;

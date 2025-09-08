@@ -5,6 +5,7 @@ public abstract class ProjectileBase : MonoBehaviour, IPoolable
 {
     [Header("Projectile Settings")]
     [SerializeField] protected LayerMask enemyLayer;
+    [SerializeField] protected SpriteRenderer _spriteRenderer;
 
     protected ProjectileSpawnParams spawnParams;
     private HashSet<IDamageable> alreadyDetectedDamageables = new HashSet<IDamageable>();
@@ -12,18 +13,32 @@ public abstract class ProjectileBase : MonoBehaviour, IPoolable
     private ObjectPool<ProjectileBase> _pool;
     protected PoolManager _poolManager;
     protected Transform _poolParent;
+    
 
     public virtual void Initialize(ProjectileSpawnParams spawnParams, PoolManager poolManager, Transform poolParent)
     {
         this.spawnParams = spawnParams;
         this._poolManager = poolManager;
         this._poolParent = poolParent;
+        SetColor(spawnParams.ProjectileColor);
         ResetDetectedEnemies();
     }
 
     public void SetPool<T>(ObjectPool<T> pool) where T : Component
     {
         _pool = pool as ObjectPool<ProjectileBase>;
+    }
+
+    private void SetColor(Color color)
+    {
+        if (_spriteRenderer != null)
+        {
+            _spriteRenderer.color = color;
+        }
+        else
+        {
+            Debug.LogError("SpriteRender not atached");
+        }
     }
 
     private void Update()

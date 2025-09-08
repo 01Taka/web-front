@@ -3,13 +3,10 @@ using UnityEngine;
 
 public class NetworkPlayerController : NetworkBehaviour
 {
-    [SerializeField] private InputAttackConfig inputConfig;
+    [SerializeField] private AttackInputSettings _attackInputSettings;
+    private int _playerLevel = 1;
 
     private AttackRequestSender _attackSender;
-
-    private int _playerLevel = 1;
-    [SerializeField] private Direction _inputDirection = Direction.Up;
-    private Vector3 _centerPosition = Vector3.zero;
 
     public override void Spawned()
     {
@@ -72,10 +69,10 @@ public class NetworkPlayerController : NetworkBehaviour
         }
 
         // 攻撃ハンドラーのセットアップ
-        InputAttackHandler inputAttackHandler = gameObject.AddComponent<InputAttackHandler>();
-        if (inputAttackHandler == null)
+        AttackInputHandler attackHandler = gameObject.AddComponent<AttackInputHandler>();
+        if (attackHandler == null)
         {
-            Debug.LogError("Failed to add InputAttackHandler component.", this);
+            Debug.LogError("Failed to add AttackInputHandler component.", this);
             return;
         }
 
@@ -87,16 +84,21 @@ public class NetworkPlayerController : NetworkBehaviour
             return;
         }
 
+        if (!SceneComponentManager.Instance.ClientCamera)
+        {
+            Debug.LogError("Client Camera Not Found");
+            return;
+        }
+
         _attackSender.Setup(_playerLevel);
 
-        inputAttackHandler.Setup(
-            inputConfig,
+        InputActions controls = new InputActions();
+        attackHandler.Initialize(
+            _attackInputSettings,
             _attackSender,
-            touchHandler,
-            SceneComponentManager.Instance.AttackRecognizer,
-            SceneComponentManager.Instance.GameCamera,
-            _centerPosition,
-            _inputDirection
+            controls.Player.Press,
+            controls.Player.Hold,
+            SceneComponentManager.Instance.ClientCamera
         );
 
         Debug.Log("Attack system successfully set up for the local player.", this);

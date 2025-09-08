@@ -48,7 +48,7 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 128
-  piercePower: 1
+  _spriteRenderer: {fileID: 9023304248489436906}
 --- !u!212 &9023304248489436906
 SpriteRenderer:
   m_ObjectHideFlags: 0

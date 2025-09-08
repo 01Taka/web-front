@@ -38,8 +38,15 @@ public struct AttackInputData
     public AttackType Type;
     public Vector3 Direction;
     public float ChargeAmount;
-    public int ShotCount;
+
+    public AttackInputData(AttackType type, Vector3 dir, float charge)
+    {
+        Type = type;
+        Direction = dir.normalized;
+        ChargeAmount = charge;
+    }
 }
+
 
 public struct AttackDataNetwork : INetworkStruct
 {
@@ -47,22 +54,22 @@ public struct AttackDataNetwork : INetworkStruct
     public AttackType Type;
     public Vector3 Direction;
     public float ChargeAmount;
-    public int ShotCount;
 }
 
 public struct AttackData
 {
     public PlayerRef AttackerRef;
-    public int Level;
+    public int AttackerIndex; 
     public AttackType Type;
     public Vector3 Direction;
     public float ChargeAmount;
-    public int ShotCount;
 }
 
 public struct ProjectileSpawnParams
 {
     public PlayerRef AttackerRef;
+    public int AttackerIndex;
+    public Color ProjectileColor;
     public AttackType Type;
     public Vector3 Position;
     public Vector3 Direction;

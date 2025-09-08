@@ -24,7 +24,6 @@ public class AttackRequestSender: NetworkBehaviour, IAttackSender
             Type = inputData.Type,
             Direction = inputData.Direction,
             ChargeAmount = inputData.ChargeAmount,
-            ShotCount = inputData.ShotCount
         };
 
         RPC_HandleAttackRequest(data);
@@ -46,14 +45,25 @@ public class AttackRequestSender: NetworkBehaviour, IAttackSender
             return;
         }
 
+        if (!GlobalRegistry.Instance.TryGetNetworkPlayerManager(out var networkPlayerManager))
+        {
+            Debug.LogError("[NetworkPlayerController] NetworkPlayerManager not found in GlobalRegistry.");
+            return;
+        }
+
+        if (!networkPlayerManager.TryGetCompactedIndex(info.Source, out int index))
+        {
+            Debug.LogError($"[NetworkPlayerController] Could not get compacted index for source: {info.Source}");
+            return;
+        }
+
         var attackData = new AttackData
         {
             AttackerRef = info.Source,
-            Level = data.Level,
+            AttackerIndex = index,
             Type = data.Type,
             Direction = data.Direction,
             ChargeAmount = data.ChargeAmount,
-            ShotCount = data.ShotCount
         };
 
         try

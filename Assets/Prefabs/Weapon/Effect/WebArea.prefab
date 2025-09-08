@@ -49,6 +49,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   expandDuration: 0.3
+  shrinkDuration: 0.3
+  spriteRenderer: {fileID: 5882605985778415966}
 --- !u!212 &5882605985778415966
 SpriteRenderer:
   m_ObjectHideFlags: 0

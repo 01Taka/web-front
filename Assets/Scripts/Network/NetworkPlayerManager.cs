@@ -145,9 +145,13 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
             compactedIndex = UnityEngine.Random.Range(0, playersCount);
             Debug.Log($"[DEBUG MODE] TryGetCompactedIndex: Returning random {compactedIndex}.");
             return true;
+        } else
+        {
+            compactedIndex = 0;
+            return true;
         }
 #endif
-        compactedIndex = -1;
+         compactedIndex = -1;
 
         if (SharedModeMasterClientTracker.IsPlayerSharedModeMasterClient(player))
         {

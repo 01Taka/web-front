@@ -29,7 +29,7 @@ public class WebMineProjectile : ProjectileBase
             WebArea explosion = _poolManager.Get(webAreaPrefab, _poolParent, _preloadCount);
             explosion.transform.position = transform.position;
             explosion.transform.localScale = webAreaPrefab.transform.localScale * prefabScaleRatio;
-            explosion.Initialize(spawnParams.EffectDuration, 0, spawnParams.Damage, spawnParams.EffectInterval, spawnParams.EffectRadius);
+            explosion.Initialize(spawnParams.EffectDuration, 0, spawnParams.Damage, spawnParams.EffectInterval, spawnParams.EffectRadius, spawnParams.ProjectileColor);
         }
 
         ReturnToPool();
