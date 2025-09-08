@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class VolleyExplosion : MonoBehaviour
+public class VolleyExplosion : MonoBehaviour, IPoolable
 {
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private float animationDuration = 0.3f;
@@ -10,12 +10,19 @@ public class VolleyExplosion : MonoBehaviour
     private float explosionDamage;
     private Vector3 originalScale;
 
+    private ObjectPool<VolleyExplosion> _pool;
+
+    public void SetPool<T>(ObjectPool<T> pool) where T : Component
+    {
+        _pool = pool as ObjectPool<VolleyExplosion>;
+    }
+
     public void Initialize(float radius, float damage)
     {
         explosionRadius = radius;
         explosionDamage = damage;
 
-        // スケールを半径に基づいて設定（直径 = radius * 2）
+        // スケールリセット
         originalScale = transform.localScale * explosionRadius;
         transform.localScale = Vector3.zero;
 
@@ -48,7 +55,15 @@ public class VolleyExplosion : MonoBehaviour
             }
         }
 
-        Destroy(gameObject);
+        ReturnToPool();
+    }
+
+    public void ReturnToPool()
+    {
+        if (_pool != null)
+            _pool.ReturnToPool(this);
+        else
+            Destroy(gameObject);
     }
 
 #if UNITY_EDITOR

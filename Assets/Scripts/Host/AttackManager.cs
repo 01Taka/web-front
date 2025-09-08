@@ -169,6 +169,6 @@ public class AttackManager : MonoBehaviour
         };
 
         // 7. ”­Ëˆ—
-        projectileSpawner.SpawnProjectile(spawnParams, attackConfig.projectilePrefab);
+        projectileSpawner.SpawnProjectile(spawnParams, attackConfig.projectilePrefab, attackConfig.preloadCount);
     }
 }

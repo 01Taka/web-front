@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: VolleyBurst
   m_EditorClassIdentifier: 
   type: 2
-  projectilePrefab: {fileID: 1923463801556368040, guid: cfcb89669db34c643afb84f59e6ec4a4, type: 3}
+  projectilePrefab: {fileID: -4916007921667730412, guid: cfcb89669db34c643afb84f59e6ec4a4, type: 3}
   projectileScaleRaito: 0.25
   baseSpeed: 15
   baseDamage: 18
@@ -30,3 +30,4 @@ MonoBehaviour:
   effectRadius: 0.5
   spreadAngle: 15
   rangeVariance: 0.2
+  preloadCount: 10

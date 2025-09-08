@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class WebArea : MonoBehaviour
+public class WebArea : MonoBehaviour, IPoolable
 {
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private float expandDuration = 0.3f;
@@ -16,6 +16,13 @@ public class WebArea : MonoBehaviour
     private Vector3 originalScale;
     private bool isShrinking = false;
 
+    private ObjectPool<WebArea> _pool;
+
+    public void SetPool<T>(ObjectPool<T> pool) where T : Component
+    {
+        _pool = pool as ObjectPool<WebArea>;
+    }
+
     public void Initialize(float duration, float slow, float damagePerTick, float interval, float radius)
     {
         destroyTime = Time.time + duration;
@@ -26,6 +33,7 @@ public class WebArea : MonoBehaviour
 
         originalScale = transform.localScale * radius;
         transform.localScale = Vector3.zero;
+        isShrinking = false;
 
         StartCoroutine(ExpandAndStartTick());
     }
@@ -51,11 +59,11 @@ public class WebArea : MonoBehaviour
         {
             isShrinking = true;
             CancelInvoke(nameof(DamageAndSlow));
-            StartCoroutine(ShrinkAndDestroy());
+            StartCoroutine(ShrinkAndReturn());
         }
     }
 
-    private IEnumerator ShrinkAndDestroy()
+    private IEnumerator ShrinkAndReturn()
     {
         float timer = 0f;
         Vector3 startScale = transform.localScale;
@@ -69,7 +77,7 @@ public class WebArea : MonoBehaviour
         }
 
         transform.localScale = Vector3.zero;
-        Destroy(gameObject);
+        ReturnToPool();
     }
 
     private void DamageAndSlow()
@@ -87,6 +95,14 @@ public class WebArea : MonoBehaviour
                 movable.ApplySlow(slowMultiplier, tickInterval + 0.1f);
             }
         }
+    }
+
+    public void ReturnToPool()
+    {
+        if (_pool != null)
+            _pool.ReturnToPool(this);
+        else
+            Destroy(gameObject);
     }
 
 #if UNITY_EDITOR

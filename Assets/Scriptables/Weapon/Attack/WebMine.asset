@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: WebMine
   m_EditorClassIdentifier: 
   type: 3
-  projectilePrefab: {fileID: 4367796846883710537, guid: a3f5e84adf9116d44b20fb2c2cff801e, type: 3}
+  projectilePrefab: {fileID: -8113943056762840606, guid: a3f5e84adf9116d44b20fb2c2cff801e, type: 3}
   projectileScaleRaito: 0.25
   baseSpeed: 10
-  baseDamage: 12
+  baseDamage: 18
   range: 5
   detectionRadius: 1
   usesCharge: 1
@@ -30,3 +30,4 @@ MonoBehaviour:
   effectRadius: 0.6
   spreadAngle: 0
   rangeVariance: 0
+  preloadCount: 5

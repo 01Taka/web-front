@@ -1,19 +1,29 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public abstract class ProjectileBase : MonoBehaviour
+public abstract class ProjectileBase : MonoBehaviour, IPoolable
 {
     [Header("Projectile Settings")]
-    [SerializeField] protected LayerMask enemyLayer; // Enemyレイヤー設定
+    [SerializeField] protected LayerMask enemyLayer;
 
     protected ProjectileSpawnParams spawnParams;
-
-    // 敵のIDamageableを基準に検出状態を保持（重複呼び出し防止用）
     private HashSet<IDamageable> alreadyDetectedDamageables = new HashSet<IDamageable>();
 
-    public virtual void Initialize(ProjectileSpawnParams spawnParams)
+    private ObjectPool<ProjectileBase> _pool;
+    protected PoolManager _poolManager;
+    protected Transform _poolParent;
+
+    public virtual void Initialize(ProjectileSpawnParams spawnParams, PoolManager poolManager, Transform poolParent)
     {
         this.spawnParams = spawnParams;
+        this._poolManager = poolManager;
+        this._poolParent = poolParent;
+        ResetDetectedEnemies();
+    }
+
+    public void SetPool<T>(ObjectPool<T> pool) where T : Component
+    {
+        _pool = pool as ObjectPool<ProjectileBase>;
     }
 
     private void Update()
@@ -30,38 +40,24 @@ public abstract class ProjectileBase : MonoBehaviour
         if (distanceTraveled >= spawnParams.Range)
         {
             OnRangeExceeded();
-            Destroy(gameObject);
+            ReturnToPool();
         }
     }
 
-    /// <summary>
-    /// 通常の移動処理。必要ならOverride可
-    /// </summary>
     protected virtual void MoveProjectile(float deltaTime)
     {
         transform.position += deltaTime * spawnParams.Speed * spawnParams.Direction;
     }
 
-    /// <summary>
-    /// 範囲内の敵を検知してコールバックする
-    /// </summary>
     private void DetectEnemies()
     {
-        // 2Dの場合、こちらを使用する方が良い
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, spawnParams.DetectionRadius, enemyLayer);
 
         foreach (var hit in hits)
         {
-            // ヒットしたオブジェクトだけでなく、その親オブジェクトも探索してIDamageableを取得する
             IDamageable damageable = hit.GetComponentInParent<IDamageable>();
+            if (damageable == null) continue;
 
-            if (damageable == null)
-            {
-                Debug.LogWarning($"Collider on '{hit.gameObject.name}' or its parent does not have an IDamageable component.");
-                continue; // 次のヒットへ
-            }
-
-            // IDamageableを基準に重複ヒットをチェック
             if (!alreadyDetectedDamageables.Contains(damageable))
             {
                 alreadyDetectedDamageables.Add(damageable);
@@ -70,32 +66,32 @@ public abstract class ProjectileBase : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 派生クラスで、敵を検知したときの処理を定義
-    /// </summary>
     protected virtual void OnEnemyDetected(IDamageable damageable)
     {
         damageable.TakeDamage(spawnParams.Damage);
+        // 例: ヒットしたら破棄するタイプなら ReturnToPool()
     }
 
-    /// <summary>
-    /// 派生クラスでフレーム単位の更新を行う場合
-    /// </summary>
     protected virtual void OnUpdate() { }
-
-    /// <summary>
-    /// 射程を越えたときに呼ばれる（爆発など）
-    /// </summary>
     protected virtual void OnRangeExceeded() { }
 
-    /// <summary>
-    /// 既にヒットした敵のリストをリセットする
-    /// </summary>
     protected void ResetDetectedEnemies()
     {
         alreadyDetectedDamageables.Clear();
     }
 
+    public void ReturnToPool()
+    {
+        if (_pool != null)
+        {
+            _pool.ReturnToPool(this);
+        }
+        else
+        {
+            Debug.LogWarning($"No pool assigned for {gameObject.name}, destroying instead.");
+            Destroy(gameObject);
+        }
+    }
 
 #if UNITY_EDITOR
     protected virtual void OnDrawGizmosSelected()

@@ -49,6 +49,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   explosionPrefab: {fileID: 7349120031270966005, guid: 0af3eefef7fdc3246a31462bbd7227d2, type: 3}
+  prefabScaleRatio: 0.22
 --- !u!212 &3269050317990573667
 SpriteRenderer:
   m_ObjectHideFlags: 0

@@ -1,6 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+public interface IPoolable
+{
+    void SetPool<T>(ObjectPool<T> pool) where T : Component;
+    void ReturnToPool();
+}
+
 public class ObjectPool<T> where T : Component
 {
     private readonly Queue<T> _objects = new Queue<T>();

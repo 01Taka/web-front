@@ -3,6 +3,8 @@ using UnityEngine;
 public class VolleyBurstProjectile : ProjectileBase
 {
     [SerializeField] private VolleyExplosion explosionPrefab;
+    [SerializeField] private float prefabScaleRatio = 0.5f;
+    [SerializeField] private int _preloadCount = 10;
 
     protected override void OnRangeExceeded()
     {
@@ -16,12 +18,11 @@ public class VolleyBurstProjectile : ProjectileBase
 
     private void Explode()
     {
-        if (explosionPrefab != null)
-        {
-            VolleyExplosion explosion = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-            explosion.Initialize(spawnParams.EffectRadius, spawnParams.Damage);
-        }
+        if (explosionPrefab == null || _poolManager == null) return;
 
-        // TODO: 爆風範囲内にダメージ付与する処理
+        VolleyExplosion explosion = _poolManager.Get(explosionPrefab, _poolParent, _preloadCount);
+        explosion.transform.position = transform.position;
+        explosion.transform.localScale = explosionPrefab.transform.localScale * prefabScaleRatio;
+        explosion.Initialize(spawnParams.EffectRadius, spawnParams.Damage);
     }
 }

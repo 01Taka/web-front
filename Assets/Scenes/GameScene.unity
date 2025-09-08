@@ -5128,10 +5128,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   zPos: 2
   attackDatabase: {fileID: 11400000, guid: 1eb8d785a14be4a468f3ef77afc2d2b2, type: 2}
-  spreadAngle: 15
-  rangeVariance: 0.4
   _testAttackPoint: {fileID: 1441437797}
-  IsActiveTestMode: 1
+  IsActiveTestMode: 0
 --- !u!114 &871589534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5145,7 +5143,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _projectileParent: {fileID: 1784200208}
-  _projectileScaleRaito: 0.3
+  _poolManager: {fileID: 1267028035}
 --- !u!1 &878800334
 GameObject:
   m_ObjectHideFlags: 0
@@ -5480,6 +5478,7 @@ Transform:
   m_Children:
   - {fileID: 156801071}
   - {fileID: 871589532}
+  - {fileID: 1267028034}
   - {fileID: 897180951}
   - {fileID: 371952148}
   m_Father: {fileID: 0}
@@ -6608,6 +6607,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1214352884}
   m_CullTransparentMesh: 1
+--- !u!1 &1267028033
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1267028034}
+  - component: {fileID: 1267028035}
+  m_Layer: 0
+  m_Name: PoolManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1267028034
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1267028033}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 911721511}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1267028035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1267028033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 397857d6304655542abb7185bb882d51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1287035796
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,7 +4,7 @@ using UnityEngine;
 public class AttackTypeData : ScriptableObject
 {
     public AttackType type;
-    public GameObject projectilePrefab;
+    public ProjectileBase projectilePrefab;
     public float projectileScaleRaito = 1f;
     public float baseSpeed = 10f;
     public float baseDamage = 30f;
@@ -27,4 +27,7 @@ public class AttackTypeData : ScriptableObject
     [Header("VolleyBurstOptions")]
     public float spreadAngle = 15f;
     public float rangeVariance = 0.2f;
+
+    [Header("PoolSettings")]
+    public int preloadCount = 5;
 }
