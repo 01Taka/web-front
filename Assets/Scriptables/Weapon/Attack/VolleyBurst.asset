@@ -16,7 +16,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 1923463801556368040, guid: cfcb89669db34c643afb84f59e6ec4a4, type: 3}
   baseSpeed: 15
   baseDamage: 15
-  range: 5
+  range: 5.5
   detectionRadius: 1
   usesCharge: 0
   maxChargeAmount: 0
@@ -27,3 +27,5 @@ MonoBehaviour:
   effectDuration: 0
   effectInterval: 0
   effectRadius: 0.5
+  spreadAngle: 15
+  rangeVariance: 0.2

@@ -26,4 +26,6 @@ MonoBehaviour:
   usesEffects: 1
   effectDuration: 2.5
   effectInterval: 0.3
-  effectRadius: 0.5
+  effectRadius: 0.6
+  spreadAngle: 0
+  rangeVariance: 0

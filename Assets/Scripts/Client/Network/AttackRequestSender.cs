@@ -27,8 +27,6 @@ public class AttackRequestSender: NetworkBehaviour, IAttackSender
             ShotCount = inputData.ShotCount
         };
 
-        Debug.Log($"Send Attack Request: {inputData.Type}");
-
         RPC_HandleAttackRequest(data);
     }
 

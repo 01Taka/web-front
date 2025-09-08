@@ -7,15 +7,13 @@ public class AttackRecognizer : MonoBehaviour, IAttackRecognizer
     {
         List<AttackInputData> results = new();
 
-        Debug.Log("Start recognizing attacks.");
-
-        if (touchData.CicularGestureAmount > inputConfig.minOrbWeaverAmount)
+        if (touchData.CircularGestureAmount > inputConfig.minOrbWeaverAmount)
         {
             results.Add(new AttackInputData
             {
                 Type = AttackType.WebMine,
                 Direction = touchData.FromBottomCenterDirection,
-                ChargeAmount = touchData.CicularGestureAmount
+                ChargeAmount = touchData.CircularGestureAmount
             });
             return results;
         }

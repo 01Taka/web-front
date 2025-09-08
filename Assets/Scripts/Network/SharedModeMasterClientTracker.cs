@@ -33,6 +33,7 @@ public class SharedModeMasterClientTracker : NetworkBehaviour
         if (LocalInstance == this)
         {
             LocalInstance = null;
+            OnTrackerSpawned = null;
         }
         else
         {

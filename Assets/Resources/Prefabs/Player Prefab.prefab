@@ -47,6 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inputConfig: {fileID: 11400000, guid: 76009b0174f901f40b80f9fb4b0359a1, type: 2}
+  _inputDirection: 0
 --- !u!114 &5610388417637080841
 MonoBehaviour:
   m_ObjectHideFlags: 0

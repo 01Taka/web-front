@@ -18,9 +18,14 @@ MonoBehaviour:
   baseDamage: 60
   range: 5
   detectionRadius: 1
-  explosionRadius: 3
   usesCharge: 1
-  maxChargeAmount: 3
+  maxChargeAmount: 2
   maxChargeMultiplier: 3
   minRequiredCharge: 0.2
   incompleteMultiplier: 0.1
+  usesEffects: 0
+  effectDuration: 0
+  effectInterval: 0
+  effectRadius: 0
+  spreadAngle: 0
+  rangeVariance: 0

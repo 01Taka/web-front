@@ -8,7 +8,7 @@ public class NetworkPlayerController : NetworkBehaviour
     private AttackRequestSender _attackSender;
 
     private int _playerLevel = 1;
-    private Direction _upDirection = Direction.Up;
+    [SerializeField] private Direction _inputDirection = Direction.Up;
     private Vector3 _centerPosition = Vector3.zero;
 
     public override void Spawned()
@@ -96,7 +96,7 @@ public class NetworkPlayerController : NetworkBehaviour
             SceneComponentManager.Instance.AttackRecognizer,
             SceneComponentManager.Instance.GameCamera,
             _centerPosition,
-            DirectionExtensions.ToVector2(_upDirection)
+            _inputDirection
         );
 
         Debug.Log("Attack system successfully set up for the local player.", this);

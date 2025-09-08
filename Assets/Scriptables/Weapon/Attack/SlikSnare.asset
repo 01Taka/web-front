@@ -27,3 +27,5 @@ MonoBehaviour:
   effectDuration: 0
   effectInterval: 0
   effectRadius: 0
+  spreadAngle: 0
+  rangeVariance: 0

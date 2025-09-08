@@ -6,10 +6,6 @@ public class AttackManager : MonoBehaviour
     [SerializeField] private float zPos = 0f;
     [SerializeField] private AttackDatabase attackDatabase;
 
-    [Header("VolleyBurstOptions")]
-    [SerializeField] private float spreadAngle = 15f;
-    [SerializeField] private float rangeVariance = 0.2f;
-
     [Header("TestOptions")]
     [SerializeField] private Transform _testAttackPoint;
     [SerializeField] public bool IsActiveTestMode;
@@ -59,8 +55,6 @@ public class AttackManager : MonoBehaviour
 
     public void HandleAttack(AttackData data)
     {
-        Debug.Log($"Handle Attack: {data.AttackerRef}, {data.Type}");
-
         // 1. 早期リターン: 必須コンポーネントのチェック
         if (projectileSpawner == null)
         {
@@ -145,10 +139,10 @@ public class AttackManager : MonoBehaviour
                 break;
 
             case AttackType.VolleyBurst:
-                float angleOffset = Random.Range(-spreadAngle, spreadAngle);
+                float angleOffset = Random.Range(-attackConfig.spreadAngle, attackConfig.spreadAngle);
                 direction = Quaternion.Euler(0, 0, angleOffset) * direction;
 
-                float distanceMultiplier = Random.Range(1f - rangeVariance, 1f + rangeVariance);
+                float distanceMultiplier = Random.Range(1f - attackConfig.rangeVariance, 1f + attackConfig.rangeVariance);
                 range *= distanceMultiplier;
                 break;
 

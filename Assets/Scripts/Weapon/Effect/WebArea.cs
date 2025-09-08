@@ -74,7 +74,7 @@ public class WebArea : MonoBehaviour
 
     private void DamageAndSlow()
     {
-        Collider[] enemies = Physics.OverlapSphere(transform.position, effectRadius, enemyLayer);
+        Collider2D[] enemies = Physics2D.OverlapCircleAll(transform.position, effectRadius, enemyLayer);
         foreach (var enemy in enemies)
         {
             if (enemy.TryGetComponent<IDamageable>(out var damageable))

@@ -22,4 +22,8 @@ public class AttackTypeData : ScriptableObject
     public float effectDuration;
     public float effectInterval;
     public float effectRadius;
+
+    [Header("VolleyBurstOptions")]
+    public float spreadAngle = 15f;
+    public float rangeVariance = 0.2f;
 }

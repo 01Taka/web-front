@@ -39,7 +39,7 @@ public class VolleyExplosion : MonoBehaviour
 
     private void Explode()
     {
-        Collider[] targets = Physics.OverlapSphere(transform.position, explosionRadius, enemyLayer);
+        Collider2D[] targets = Physics2D.OverlapCircleAll(transform.position, explosionRadius, enemyLayer);
         foreach (var target in targets)
         {
             if (target.TryGetComponent<IDamageable>(out var damageable))

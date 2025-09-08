@@ -25,7 +25,7 @@ public struct TouchInputData
     public bool IsSwipeForward;
     public Vector2 FromCenterDirection;
     public Vector2 FromBottomCenterDirection;
-    public float CicularGestureAmount;
+    public float CircularGestureAmount;
 }
 
 public interface IAttackRecognizer
