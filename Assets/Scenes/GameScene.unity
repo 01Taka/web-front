@@ -5129,7 +5129,7 @@ MonoBehaviour:
   zPos: 2
   attackDatabase: {fileID: 11400000, guid: 1eb8d785a14be4a468f3ef77afc2d2b2, type: 2}
   _testAttackPoint: {fileID: 1441437797}
-  IsActiveTestMode: 0
+  IsActiveTestMode: 1
 --- !u!114 &871589534
 MonoBehaviour:
   m_ObjectHideFlags: 0

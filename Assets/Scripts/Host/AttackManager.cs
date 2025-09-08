@@ -122,7 +122,7 @@ public class AttackManager : MonoBehaviour
                     t = Mathf.Clamp01(t); // ”O‚Ì‚½‚ßƒNƒ‰ƒ“ƒv
                     multiplier = Mathf.Lerp(1f, attackConfig.maxChargeMultiplier, t);
 
-                    Debug.Log($"[{data.Type}] Charge Multiplier: {multiplier}, Amount: {data.ChargeAmount}");
+                    //Debug.Log($"[{data.Type}] Charge Multiplier: {multiplier}, Amount: {data.ChargeAmount}");
                     damage *= multiplier;
 
                     if (data.Type == AttackType.ChargedPierce)
