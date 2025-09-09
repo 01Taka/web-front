@@ -4,6 +4,7 @@ public class PlayerManager : MonoBehaviour, IDamageable
 {
     [SerializeField] private ScreenShake _screenShake;
     [SerializeField] private ScreenFader _fader;
+    [SerializeField] private ScreenShakeSettings _screenShakeSettings;
 
     private DamageTakenManager _damageTakenManager = new DamageTakenManager();
     public float TakenDamage => _damageTakenManager.TakenDamage;
@@ -31,7 +32,7 @@ public class PlayerManager : MonoBehaviour, IDamageable
         // 各コンポーネントがnullでない場合のみメソッドを呼び出す
         if (_screenShake != null)
         {
-            _screenShake.StartShake();
+            _screenShake.StartShake(_screenShakeSettings);
         }
 
         if (_fader != null)

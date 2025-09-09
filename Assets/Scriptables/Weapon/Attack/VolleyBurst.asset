@@ -16,8 +16,8 @@ MonoBehaviour:
   projectilePrefab: {fileID: -4916007921667730412, guid: cfcb89669db34c643afb84f59e6ec4a4, type: 3}
   projectileScaleRaito: 0.25
   baseSpeed: 15
-  baseDamage: 15
-  range: 6
+  baseDamage: 12
+  range: 6.4
   detectionRadius: 0.1
   usesCharge: 0
   maxChargeAmount: 0

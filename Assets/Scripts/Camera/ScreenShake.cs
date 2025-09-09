@@ -3,34 +3,36 @@ using System.Collections;
 
 public class ScreenShake : MonoBehaviour
 {
-    [SerializeField]
-    private float _shakeDuration = 0.5f;
-    [SerializeField]
-    private float _shakeMagnitude = 0.1f;
     private Vector3 _originalPosition;
+    private Coroutine _shakeCoroutine;
 
-    void Start()
+    private void Awake()
     {
         _originalPosition = transform.localPosition;
     }
 
-    public void StartShake()
+    public void StartShake(ScreenShakeSettings settings)
     {
-        StartCoroutine(ShakeCoroutine());
+        if (_shakeCoroutine != null)
+        {
+            StopCoroutine(_shakeCoroutine);
+        }
+        _shakeCoroutine = StartCoroutine(ShakeCoroutine(settings));
     }
 
-    private IEnumerator ShakeCoroutine()
+    private IEnumerator ShakeCoroutine(ScreenShakeSettings settings)
     {
         float timer = 0f;
-        while (timer < _shakeDuration)
+        while (timer < settings.shakeDuration)
         {
-            float x = Random.Range(-1f, 1f) * _shakeMagnitude;
-            float y = Random.Range(-1f, 1f) * _shakeMagnitude;
+            float x = Random.Range(-1f, 1f) * settings.shakeMagnitude;
+            float y = Random.Range(-1f, 1f) * settings.shakeMagnitude;
             transform.localPosition = _originalPosition + new Vector3(x, y, 0f);
 
             timer += Time.deltaTime;
             yield return null;
         }
         transform.localPosition = _originalPosition;
+        _shakeCoroutine = null;
     }
 }

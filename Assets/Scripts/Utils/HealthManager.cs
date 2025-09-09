@@ -136,7 +136,6 @@ public class HealthManager
     /// </summary>
     protected virtual void Die()
     {
-        if (!IsAlive) return;
         _onDeathEvent?.Invoke();
     }
 

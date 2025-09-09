@@ -13,6 +13,7 @@ public class HordeSpawner : MonoBehaviour
     [SerializeField] private float _spawnInterval = 3f;
     [SerializeField] private int _enemiesPerWave = 5;
     [SerializeField] private int _initialPoolSize = 20;
+    [SerializeField] private EnemyFootstepSound _enemyFootstepSound;
 
     [Header("Events")]
     public UnityEvent OnHordeEnemyKilled;
@@ -37,6 +38,7 @@ public class HordeSpawner : MonoBehaviour
         if (_spawnCoroutine == null)
         {
             _spawnCoroutine = StartCoroutine(SpawnLoop());
+            _enemyFootstepSound.StartFootsteps();
         }
     }
 
@@ -45,6 +47,7 @@ public class HordeSpawner : MonoBehaviour
         if (_spawnCoroutine != null)
         {
             StopCoroutine(_spawnCoroutine);
+            _enemyFootstepSound.StopFootsteps();
             _spawnCoroutine = null;
         }
     }

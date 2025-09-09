@@ -75,7 +75,7 @@ public class ConcreteBossManager : BaseBossManager
         return new BossAttackLogicExecutor(animationController, this, attackTarget, attackLogics);
     }
 
-    protected override void ExecuteAttack(AttackPattern pattern)
+    public override void ExecuteAttack(AttackPattern pattern)
     {
         // 攻撃マネージャーがnullでないことを確認してから処理を委譲
         if (_attackManager != null)

@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9590033d00f6b184f8180bb5eae15d75, type: 3}
   m_Name: GameSetting
   m_EditorClassIdentifier: 
-  TimeLimit: 100
-  ExtraTimeOnPhaseChange: 60
+  TimeLimit: 140
+  ExtraTimeOnPhaseChange: 0

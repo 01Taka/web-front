@@ -5,15 +5,20 @@ using UnityEngine.Events;
 public class BossSpawner : MonoBehaviour
 {
     [SerializeField] private Transform _parent;
-    [SerializeField] private Vector3 _spawnOffset; // スポーン位置を調整するためのフィールドを追加
-    [SerializeField] private BossSettings[] _bossSettings; // ボス設定の配列
+    [SerializeField] private Vector3 _spawnOffset;
+    [SerializeField] private BossSettings[] _bossSettings;
     [SerializeField] private HpBarManager _hpBarManager;
     [SerializeField] private PlayerManager _playerManager;
+    [SerializeField] private ScreenShake _screenShake;
 
     private ConcreteBossManager _currentBossBossManager;
     public ConcreteBossManager CurrentBossBossManager => _currentBossBossManager;
     [SerializeField] private UnityEvent _onBossDestroyed = new UnityEvent();
 
+    /// <summary>
+    /// 指定されたIDのボスを生成する
+    /// </summary>
+    /// <param name="id">生成するボスのID</param>
     public bool TrySpawn(BossId id)
     {
         // 指定された id の設定を BossSettings 配列から探す
@@ -27,32 +32,45 @@ public class BossSpawner : MonoBehaviour
         }
         else
         {
-            // 一致する設定が見つからなかった場合、エラーログを出力
             Debug.LogError("Error: BossSettings with id " + id.ToString() + " not found.");
             return false;
         }
     }
 
-    void Spawn(BossSettings bossSetting)
+    private void Spawn(BossSettings bossSetting)
     {
         // 親オブジェクトの位置にオフセットを加えた位置でボスをインスタンス化
-        var boss = Instantiate(bossSetting.bossInstance, _parent.position + _spawnOffset, Quaternion.identity, _parent);
+        Vector3 spawnPosition = _parent.position + _spawnOffset;
+        var boss = Instantiate(bossSetting.bossInstance, spawnPosition, Quaternion.identity, _parent);
 
-        // 生成されたオブジェクトに BaseBossManager が付いているか確認
+        // 生成されたオブジェクトに ConcreteBossManager が付いているか確認
         if (boss.TryGetComponent(out ConcreteBossManager bossManager))
         {
             _hpBarManager.SetTarget(bossManager.HealthManager);
             _currentBossBossManager = bossManager;
             bossManager.Initialize(_playerManager);
+
+            // ボスに BossEntrance コンポーネントがあれば初期化
+            if (boss.TryGetComponent(out BossEntrance bossEntrance))
+            {
+                // BossEntranceに演出設定を渡して初期化
+                if (bossSetting.entranceSettings != null)
+                {
+                    bossEntrance.Initialize(bossSetting.entranceSettings, spawnPosition.y, _screenShake);
+                }
+                else
+                {
+                    Debug.LogWarning("BossEntranceSettingsが設定されていません。", boss);
+                }
+            }
         }
         else
         {
-            // もしコンポーネントが見つからなかった場合に警告を出力
-            Debug.LogError($"Spawned boss prefab '{boss.name}' does not have a BaseBossManager component.");
+            Debug.LogError($"Spawned boss prefab '{boss.name}' does not have a ConcreteBossManager component.");
         }
     }
 
-    public void DestoryBoss()
+    public void DestroyBoss()
     {
         if (_currentBossBossManager != null)
         {

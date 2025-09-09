@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86feb7f3a9e959f4b8bba56746cbf387, type: 3}
+  m_Name: BossDefeatSettings
+  m_EditorClassIdentifier: 
+  numberOfSmallExplosions: 10
+  smallExplosionInterval: 0.12
+  smallExplosionType: 0
+  smallExplosionClip: {fileID: 8300000, guid: 1575321c545a5c4408d577ff5637e2c7, type: 3}
+  explosionEffectRadius: 7
+  explosionEffectZ: -10
+  finalExplosionType: 2
+  finalExplosionDuration: 0.1
+  finalExplosionClip: {fileID: 8300000, guid: 4784eb76dfa9d9d4c8c54856b2929a6e, type: 3}
+  finalShakeSettings: {fileID: 11400000, guid: bed54132ee6cf4947b437e74e953b442, type: 2}

@@ -170,7 +170,7 @@ public class GamePlayingManager : MonoBehaviour
     private void StopGameSystems()
     {
         _hordeSpawner.StopSpawn();
-        _bossSpawner.DestoryBoss();
+        _bossSpawner.DestroyBoss();
         _timerManager.StopTimer();
     }
 

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ffd9ff9df745474cb1464c64210c66c, type: 3}
   m_Name: MechanicalSpider_Phase1
   m_EditorClassIdentifier: 
-  maxHealth: 20000
-  phaseTransitionTime: 1
+  phaseTransitionHealthPercentage: 0.5
+  phaseTransitionTime: 4
   minAttackInterval: 3
   maxAttackInterval: 4
   firingPorts: 01000000020000000300000004000000

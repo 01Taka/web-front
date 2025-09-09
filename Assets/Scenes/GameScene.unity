@@ -149,11 +149,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _parent: {fileID: 1183476333}
-  _spawnOffset: {x: 0, y: 3, z: 0}
+  _spawnOffset: {x: 0, y: 3, z: -1}
   _bossSettings:
   - {fileID: 11400000, guid: baac76d65a23d4941a728ae4d4b82c87, type: 2}
   _hpBarManager: {fileID: 1482511351}
   _playerManager: {fileID: 1069219382}
+  _screenShake: {fileID: 1883452877}
   _onBossDestroyed:
     m_PersistentCalls:
       m_Calls: []
@@ -1015,6 +1016,7 @@ Transform:
   - {fileID: 454441645}
   - {fileID: 2346046}
   - {fileID: 1836144790}
+  - {fileID: 204447208}
   - {fileID: 2121977736}
   - {fileID: 1600084511}
   m_Father: {fileID: 911721511}
@@ -1480,6 +1482,58 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 203678790}
   m_CullTransparentMesh: 1
+--- !u!1 &204447207
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 204447208}
+  - component: {fileID: 204447209}
+  m_Layer: 0
+  m_Name: EnemyFootstepSound
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &204447208
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204447207}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 156801071}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &204447209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204447207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 962b2f8149e08864781c9aea67a0e4df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  footstepClips:
+  - {fileID: 8300000, guid: 60af2eaaa16176c4bb72175d0a446d9a, type: 3}
+  minPitch: 0.5
+  maxPitch: 2
+  minVolume: 0.2
+  maxVolume: 0.4
+  minInterval: 0.1
+  maxInterval: 0.2
 --- !u!1 &255501291
 GameObject:
   m_ObjectHideFlags: 0
@@ -3956,6 +4010,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _bomPrefab: {fileID: 3661385223833923510, guid: adf1f0dc8f848a84199c657ca14955bf, type: 3}
   _bomParent: {fileID: 1183476333}
+  _prefabInstanceScale: 0.5
 --- !u!1 &631778493
 GameObject:
   m_ObjectHideFlags: 0
@@ -5778,6 +5833,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _screenShake: {fileID: 1883452877}
   _fader: {fileID: 151405164}
+  _screenShakeSettings: {fileID: 11400000, guid: bed54132ee6cf4947b437e74e953b442, type: 2}
 --- !u!1 &1079097620
 GameObject:
   m_ObjectHideFlags: 0
@@ -9064,6 +9120,13 @@ MonoBehaviour:
       startColor: {r: 0, g: 0, b: 0, a: 0}
       endColor: {r: 1, g: 1, b: 1, a: 0.7058824}
       explosionSprite: {fileID: 4404015598580091926, guid: a3ec791d068805d47a0d924d592f84db, type: 3}
+  - explosionType: 2
+    settings:
+      explosionDuration: 0.6
+      maxScale: {x: 1, y: 1, z: 1}
+      startColor: {r: 0, g: 0, b: 0, a: 0}
+      endColor: {r: 1, g: 1, b: 1, a: 0.7058824}
+      explosionSprite: {fileID: 1694384321890995148, guid: 3232054b9e1739941b433ba67697d9a2, type: 3}
 --- !u!1 &1784200207
 GameObject:
   m_ObjectHideFlags: 0
@@ -9555,6 +9618,7 @@ MonoBehaviour:
   _spawnInterval: 1
   _enemiesPerWave: 3
   _initialPoolSize: 20
+  _enemyFootstepSound: {fileID: 204447209}
   OnHordeEnemyKilled:
     m_PersistentCalls:
       m_Calls: []
@@ -9880,8 +9944,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef8fee90a2ab68946b074221e99c4d6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _shakeDuration: 0.2
-  _shakeMagnitude: 0.2
 --- !u!1 &1886764766
 GameObject:
   m_ObjectHideFlags: 0

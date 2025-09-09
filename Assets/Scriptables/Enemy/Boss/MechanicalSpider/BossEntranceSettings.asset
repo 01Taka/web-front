@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a1c21cd4c594e645966cfdd1fd08285, type: 3}
+  m_Name: BossEntranceSettings
+  m_EditorClassIdentifier: 
+  ScreenShakeSettings: {fileID: 11400000, guid: f3c778a171b39194d9bcfa580a306628, type: 2}
+  FootstepClips:
+  - {fileID: 8300000, guid: dc640632ca565c344b5fffc36ff53951, type: 3}
+  - {fileID: 8300000, guid: b99f2d281436f7b4e844fb30000fd01b, type: 3}
+  NumberOfFootsteps: 3
+  FootstepInterval: 1
+  LandingClip: {fileID: 8300000, guid: bcde7965e73c4e4428246d7cf7a8e10b, type: 3}
+  JumpHeight: 10
+  JumpDuration: 1.5
+  JumpMoveDuration: 0.2

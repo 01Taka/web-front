@@ -8,14 +8,14 @@ public abstract class BaseBossManager : MonoBehaviour
     [SerializeField] private BossSettings _bossSettings;
     [SerializeField] private BossPart bodyPart;
     [SerializeField] private AudioClip hitClip;
-    [SerializeField] [Range(0, 1f)] private float hitVolum = 1f;
+    [SerializeField][Range(0, 1f)] private float hitVolum = 1f;
+    [SerializeField] BossDefeatController _bossDefeatController;
 
     private int _currentPhaseIndex = 0;
-
-    [SerializeField] private bool _resetHealthOnPhaseChange = true;
+    [SerializeField] private bool _resetHealthOnPhaseChange = false;
 
     private HealthManager _healthManager;
-    private Coroutine _attackRoutine;
+    private BossAttackController _attackController;
 
     private UnityEvent _onDeathEvent;
     private UnityEvent<int> _onTransitionPhaseEvent;
@@ -38,17 +38,23 @@ public abstract class BaseBossManager : MonoBehaviour
         _onDeathEvent = new UnityEvent();
         _onTransitionPhaseEvent = new UnityEvent<int>();
 
-        _healthManager = new HealthManager(CurrentPhaseSettings.maxHealth);
-        _healthManager.AddOnDeathAction(StopAttacking);
+        _healthManager = new HealthManager(_bossSettings.maxHealth);
+        _healthManager.AddOnDeathAction(OnDefeated);
 
-        // 最初のフェーズを開始。
-        _healthManager.SetMaxHealth(CurrentPhaseSettings.maxHealth, true);
+        // BossAttackControllerを初期化
+        _attackController = GetComponent<BossAttackController>();
+        if (_attackController == null)
+        {
+            _attackController = gameObject.AddComponent<BossAttackController>();
+        }
+        _attackController.Initialize(this, CurrentPhaseSettings);
+
         StartCoroutine(StartPhaseRoutine());
     }
 
     public void AddOnDeathAction(UnityAction action)
     {
-        _onDeathEvent.AddListener(action);
+        _bossDefeatController.OnDefeatCompleted.AddListener(action);
     }
 
     public void AddOnTransitionPhaseAction(UnityAction<int> action)
@@ -74,20 +80,28 @@ public abstract class BaseBossManager : MonoBehaviour
 
         _healthManager.TakeDamage(amount);
 
-        if (_healthManager.CurrentHealth <= 0)
+        // ボスの体力が減った後、フェーズ移行の条件をチェック
+        if (_currentPhaseIndex < _bossSettings.GetPhaseCount() - 1)
         {
-            bool isFinalPhase = _currentPhaseIndex >= _bossSettings.GetPhaseCount() - 1;
-
-            if (isFinalPhase)
+            // 攻撃中でなければフェーズ移行を許可
+            if (!_attackController.IsAttacking)
             {
-                _healthManager.Kill();
-                _onDeathEvent?.Invoke();
-            }
-            else
-            {
-                TransitionToNextPhase();
+                float nextPhaseTransitionPercent = CurrentPhaseSettings.phaseTransitionHealthPercentage;
+                float healthRatio = _healthManager.CurrentHealth / _bossSettings.maxHealth;
 
+                if (healthRatio <= nextPhaseTransitionPercent)
+                {
+                    TransitionToNextPhase();
+                    return;
+                }
             }
+        }
+
+        // 最終フェーズの死亡判定、または移行条件を満たさなかった場合の死亡判定
+        if (!_healthManager.IsAlive)
+        {
+            _healthManager.Kill();
+            _onDeathEvent?.Invoke();
         }
     }
 
@@ -95,8 +109,7 @@ public abstract class BaseBossManager : MonoBehaviour
     {
         _currentPhaseIndex++;
         Debug.Log($"Transitioning to Phase {_currentPhaseIndex + 1}");
-        
-        _healthManager.SetMaxHealth(CurrentPhaseSettings.maxHealth, _resetHealthOnPhaseChange);
+        _attackController.UpdatePhaseSettings(CurrentPhaseSettings);
         StartCoroutine(StartPhaseRoutine());
 
         _onTransitionPhaseEvent?.Invoke(_currentPhaseIndex);
@@ -110,86 +123,39 @@ public abstract class BaseBossManager : MonoBehaviour
         StartAttacking();
     }
 
-    public void PerformAttack(BossAttackType attackType)
-    {
-        AttackPattern pattern = FindAttackPattern(attackType);
-
-        if (pattern != null)
-        {
-            ExecuteAttack(pattern);
-        }
-        else
-        {
-            Debug.LogError($"AttackType '{attackType}' is not available in current phase.");
-        }
-    }
-
-    public AttackPattern PerformRandomAttack()
-    {
-        AttackPattern[] patterns = CurrentPhaseSettings.attackPatterns;
-
-        if (patterns == null || patterns.Length == 0)
-        {
-            Debug.LogWarning("No attack patterns found for the current phase.");
-            return null;
-        }
-
-        int randomIndex = Random.Range(0, patterns.Length);
-        AttackPattern selectedPattern = patterns[randomIndex];
-        ExecuteAttack(selectedPattern);
-        return selectedPattern;
-    }
-
+    // AttackControllerが呼び出す
     public void StartAttacking()
     {
-        if (_attackRoutine != null)
-        {
-            StopCoroutine(_attackRoutine);
-        }
-        _attackRoutine = StartCoroutine(AttackRoutine());
+        _attackController.StartAttacking();
     }
 
     public void StopAttacking()
     {
-        if (_attackRoutine != null)
-        {
-            StopCoroutine(_attackRoutine);
-            _attackRoutine = null;
-        }
+        _attackController.StopAttacking();
     }
 
-    private IEnumerator AttackRoutine()
+    // このメソッドは派生クラスでオーバーライドされる
+    public virtual void ExecuteAttack(AttackPattern pattern)
     {
-        yield return new WaitForSeconds(Random.Range(CurrentPhaseSettings.minAttackInterval, CurrentPhaseSettings.maxAttackInterval));
-
-        while (_healthManager.IsAlive)
-        {
-            var executedAttack = PerformRandomAttack();
-
-            float waitTime = Random.Range(CurrentPhaseSettings.minAttackInterval, CurrentPhaseSettings.maxAttackInterval);
-
-            if (executedAttack != null)
-            {
-                waitTime += executedAttack.AttackPreparationTime + executedAttack.AttackDuration;
-            }
-
-            yield return new WaitForSeconds(waitTime);
-        }
+        // 派生クラスで具体的な攻撃処理を実装
     }
 
-    private AttackPattern FindAttackPattern(BossAttackType attackType)
+    public void OnDefeated()
     {
-        foreach (var pattern in CurrentPhaseSettings.attackPatterns)
+        StopAttacking();
+
+        if (_bossDefeatController != null)
         {
-            if (pattern.AttackType == attackType)
-            {
-                return pattern;
-            }
+            // 撃破演出の開始を依頼
+            _bossDefeatController.StartDefeatSequence();
         }
-        return null;
+        else
+        {
+            // 撃破コントローラーがない場合は即座に破棄
+            DestroySelf();
+        }
     }
 
-    protected abstract void ExecuteAttack(AttackPattern pattern);
 
     public void DestroySelf()
     {

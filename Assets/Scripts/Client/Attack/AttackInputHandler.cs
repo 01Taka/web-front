@@ -199,12 +199,9 @@ public class AttackInputHandler : MonoBehaviour
         Vector3 circleCenter = attackVisualizer.GetCircleCenterWorldPosition();
         float distance = Vector3.Distance(worldPos, circleCenter);
         if (distance > settings.radius) return false;
-
-        if (worldPos.y < circleCenter.y) return false;
-
         return true;
     }
-
+    
     private float GetAngleFromCenterFromPointer()
     {
         Vector3 worldPos = attackVisualizer.GetPointerWorldPosition();

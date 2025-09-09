@@ -5,7 +5,8 @@ using System;
 public enum ExplosionType
 {
     Default,
-    Blue
+    Blue,
+    Big
 }
 
 [Serializable]
