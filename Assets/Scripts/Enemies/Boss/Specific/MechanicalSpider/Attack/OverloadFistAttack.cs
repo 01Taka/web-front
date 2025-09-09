@@ -41,6 +41,8 @@ public class OverloadFistAttack : BossAttackBase
         // レコードを開始し、コールバックを登録
         part.StartRecordAndRegisterCallback(_recordIdCounter, (amount) => OnDamageTakenDuringAttack(context));
 
+        TargetMarkManager.Instance.StartLockOn(part.TargetMarkPosition);
+
         // 親クラスの処理を実行
         base.OnBeginPreparation(context);
     }
@@ -94,6 +96,8 @@ public class OverloadFistAttack : BossAttackBase
     /// <param name="context"></param>
     private void CleanUpAttack(BossAttackContext context)
     {
+        TargetMarkManager.Instance.ReleaseLockOn();
+
         if (TryGetRecordInfo(context, out int recordId, out MechanicalSpiderLegPart part))
         {
             // レコードを終了し、コールバックを解除

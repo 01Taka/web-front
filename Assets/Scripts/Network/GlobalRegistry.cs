@@ -5,6 +5,7 @@ public class GlobalRegistry : MonoBehaviour
     public static GlobalRegistry Instance { get; private set; }
     private NetworkPlayerManager _networkPlayerManager;
     private StateAuthorityManager _stateAuthorityManager;
+    private AttackVisualizer _attackVisualizer;
 
     void Awake()
     {
@@ -51,6 +52,22 @@ public class GlobalRegistry : MonoBehaviour
             }
         }
         networkPlayerManager = _networkPlayerManager;
+        return true;
+    }
+
+    public bool TryGetAttackVisualizer(out AttackVisualizer attackVisualizer)
+    {
+        if (_attackVisualizer == null)
+        {
+            _attackVisualizer = FindFirstObjectByType<AttackVisualizer>();
+            if (!_attackVisualizer)
+            {
+                attackVisualizer = null;
+                Debug.LogError("Not found AttackVisualizer");
+                return false;
+            }
+        }
+        attackVisualizer = _attackVisualizer;
         return true;
     }
 

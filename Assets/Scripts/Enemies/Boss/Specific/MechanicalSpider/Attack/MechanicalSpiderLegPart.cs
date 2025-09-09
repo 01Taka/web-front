@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class MechanicalSpiderLegPart : BossPart, IDamageable
 {
+    [SerializeField] private Transform _targetMarkPosition;
+    public Transform TargetMarkPosition => _targetMarkPosition;
+
     private DamageTakenManager _damageManager;
 
     // 複数のレコードIDとコールバックを管理するための辞書

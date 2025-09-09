@@ -3,11 +3,12 @@ using System.Collections.Generic;
 
 public interface IPoolable
 {
-    void SetPool<T>(ObjectPool<T> pool) where T : Component;
+    bool IsReusable { get; set; }
+    void SetPool<T>(ObjectPool<T> pool) where T : Component, IPoolable;
     void ReturnToPool();
 }
 
-public class ObjectPool<T> where T : Component
+public class ObjectPool<T> where T : Component, IPoolable
 {
     private readonly Queue<T> _objects = new Queue<T>();
     private readonly T _prefab;
@@ -22,6 +23,7 @@ public class ObjectPool<T> where T : Component
         {
             T obj = CreateNew();
             obj.gameObject.SetActive(false);
+            obj.IsReusable = true;  // 初期状態では再利用可能
             _objects.Enqueue(obj);
         }
     }
@@ -33,21 +35,28 @@ public class ObjectPool<T> where T : Component
 
     public T Get()
     {
-        if (_objects.Count > 0 && !_objects.Peek().gameObject.activeSelf)
+        // 再利用可能なオブジェクトを探す
+        while (_objects.Count > 0)
         {
             var obj = _objects.Dequeue();
-            obj.gameObject.SetActive(true);
-            return obj;
+
+            // IsReusableがtrueでないオブジェクトはスキップ
+            if (obj.IsReusable)
+            {
+                obj.gameObject.SetActive(true);
+                obj.IsReusable = false;  // 取得した時点で再利用不可にする
+                return obj;
+            }
         }
-        else
-        {
-            return CreateNew();
-        }
+
+        // 再利用可能なオブジェクトがない場合、新しいオブジェクトを生成
+        return CreateNew();
     }
 
     public void ReturnToPool(T obj)
     {
         obj.gameObject.SetActive(false);
+        obj.IsReusable = true;  // 再利用可能状態に設定
         _objects.Enqueue(obj);
     }
 }

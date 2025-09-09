@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: AttackSettings
   m_EditorClassIdentifier: 
   circlePrefab: {fileID: 222005227114349006, guid: 3d0432bb9d3c16f4dac154e82619caee, type: 3}
+  pointerPrefab: {fileID: 342029638533609599, guid: 6d98d53766233c945a3bb44dd0b4be29, type: 3}
   radius: 5
   mirrorHorizontally: 0
+  playerColor: {fileID: 11400000, guid: f7b5b500fbeab3a48a5804f714564f8c, type: 2}
+  circleAlpha: 0.3
   volleyBurstHoldDuration: 0.2
-  chargedPierceChargeTime: 2
-  webMineChargeAngleMultiplier: 1
+  webMineChargeMaxAngle: 60
+  webMineFireBorder: 60

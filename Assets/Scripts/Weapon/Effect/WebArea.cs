@@ -3,6 +3,8 @@ using System.Collections;
 
 public class WebArea : MonoBehaviour, IPoolable
 {
+    public bool IsReusable { get; set; }
+
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private float expandDuration = 0.3f;
     [SerializeField] private float shrinkDuration = 0.3f;
@@ -19,7 +21,7 @@ public class WebArea : MonoBehaviour, IPoolable
 
     private ObjectPool<WebArea> _pool;
 
-    public void SetPool<T>(ObjectPool<T> pool) where T : Component
+    public void SetPool<T>(ObjectPool<T> pool) where T : Component, IPoolable
     {
         _pool = pool as ObjectPool<WebArea>;
     }

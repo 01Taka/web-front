@@ -4,9 +4,9 @@ using UnityEngine;
 public class NetworkPlayerController : NetworkBehaviour
 {
     [SerializeField] private AttackInputSettings _attackInputSettings;
-    private int _playerLevel = 1;
 
     private AttackRequestSender _attackSender;
+    private AttackVisualizer _attackVisualizer;
 
     public override void Spawned()
     {
@@ -84,16 +84,23 @@ public class NetworkPlayerController : NetworkBehaviour
             return;
         }
 
+        _attackVisualizer = gameObject.AddComponent<AttackVisualizer>();
+        if (_attackVisualizer == null)
+        {
+            Debug.LogError("Failed to add AttackVisualizer component.", this);
+            return;
+        }
+        _attackVisualizer.Initialize(_attackInputSettings, SceneComponentManager.Instance.ClientCamera);
+
         if (!SceneComponentManager.Instance.ClientCamera)
         {
             Debug.LogError("Client Camera Not Found");
             return;
         }
 
-        _attackSender.Setup(_playerLevel);
-
         InputActions controls = new InputActions();
         attackHandler.Initialize(
+            _attackVisualizer,
             _attackInputSettings,
             _attackSender,
             controls.Player.Press,

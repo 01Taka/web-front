@@ -7,6 +7,7 @@ public class NetworkGameManager : MonoBehaviour
 
     [SerializeField] private NetworkPrefabRef playerPrefab;
     [SerializeField] private GamePlayingManager _gamePlayingManager;
+    [SerializeField] private  PlayerColor _playerColor;
 
     private Vector3 _spawnPosition = Vector3.zero;
 

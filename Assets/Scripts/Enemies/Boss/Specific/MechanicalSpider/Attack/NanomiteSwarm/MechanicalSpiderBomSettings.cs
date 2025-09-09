@@ -1,9 +1,13 @@
 using UnityEngine;
-using UnityEngine.Events;
 
 [CreateAssetMenu(fileName = "MechanicalSpiderBomSettings", menuName = "Boss/MechanicalSpider/Bom", order = 1)]
 public class MechanicalSpiderBomSettings : ScriptableObject
 {
+    [Header("SpawnerSettings")]
+    public int NumberOfBoms = 5;
+    public float SpawnRadius = 5f;
+    public float ExplosionTime = 3f;
+
     [Header("‰ñ“]İ’è")]
     [Tooltip("Z²ü‚è‚Ì‰ñ“]‘¬“x (“x/•b)")]
     public float RotationSpeed = 100f;

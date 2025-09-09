@@ -12,19 +12,17 @@ public class AttackInputHandler : MonoBehaviour
 
     private TouchInputState touchState = new TouchInputState();
 
-    // 外部から受け取る依存
-    private GameObject circleInstance;
-    private Transform circleCenter;
+    // Dependencies
+    private AttackVisualizer attackVisualizer;
     private AttackInputSettings settings;
     private IAttackSender attackSender;
     private InputAction pressAction;
     private InputAction holdAction;
     private Camera mainCam;
 
-    // 状態管理
+    // State management
     private bool wasInside;
     private bool isInside;
-    private float insideTime;
     private float entryAngle;
     private float exitAngle;
     private List<AttackInputClossHistory> clossHistory = new List<AttackInputClossHistory>();
@@ -32,9 +30,10 @@ public class AttackInputHandler : MonoBehaviour
     private Vector2 startPosition;
 
     /// <summary>
-    /// 外部から初期化する
+    /// Initializes the input handler and its dependencies.
     /// </summary>
     public void Initialize(
+        AttackVisualizer visualizer,
         AttackInputSettings settings,
         IAttackSender attackSender,
         InputAction pressAction,
@@ -42,14 +41,12 @@ public class AttackInputHandler : MonoBehaviour
         Camera mainCam
     )
     {
+        this.attackVisualizer = visualizer;
         this.settings = settings;
         this.attackSender = attackSender;
         this.pressAction = pressAction;
         this.holdAction = holdAction;
         this.mainCam = mainCam;
-
-        // 設定から値を取得
-        SpawnPrefab(settings.circlePrefab);
 
         if (pressAction != null)
         {
@@ -62,24 +59,6 @@ public class AttackInputHandler : MonoBehaviour
         {
             holdAction.performed += OnPressHeld;
             holdAction.Enable();
-        }
-    }
-
-    private void SpawnPrefab(GameObject circlePrefab)
-    {
-        if (circlePrefab != null && mainCam != null)
-        {
-            Vector3 screenBottomCenter = new Vector3(Screen.width / 2f, 0, 0f);
-            Vector3 worldBottomCenter = mainCam.ScreenToWorldPoint(screenBottomCenter);
-            worldBottomCenter.z = 0f;
-
-            circleInstance = Instantiate(circlePrefab, worldBottomCenter, Quaternion.identity);
-            circleCenter = circleInstance.transform;
-
-            if (circleInstance != null)
-            {
-                circleInstance.transform.localScale = new Vector3(settings.radius * 2, settings.radius * 2, 1);
-            }
         }
     }
 
@@ -96,17 +75,22 @@ public class AttackInputHandler : MonoBehaviour
             holdAction.performed -= OnPressHeld;
             holdAction.Disable();
         }
+
+        // Clean up the visualizer's objects
+        attackVisualizer?.Cleanup();
     }
 
-    // ---- 入力イベント ----
+    // ---- Input Events ----
     private void OnPressStarted(InputAction.CallbackContext ctx)
     {
         startPosition = GetPointerPosition();
         touchState.StartTouch(startPosition);
 
+        attackVisualizer.SetPointerActive(true);
+        attackVisualizer.UpdatePointerPosition(startPosition);
+
         wasInside = IsInsideDetection(startPosition);
         isInside = wasInside;
-        insideTime = 0f;
         entryAngle = 0f;
         exitAngle = 0f;
         clossHistory.Clear();
@@ -118,30 +102,30 @@ public class AttackInputHandler : MonoBehaviour
         if (!touchState.IsTouching) return;
 
         Vector2 currentPos = GetPointerPosition();
+        attackVisualizer.UpdatePointerPosition(currentPos);
         isInside = IsInsideDetection(currentPos);
 
         if (!wasInside && isInside)
         {
-            entryAngle = GetAngleFromCenter(currentPos);
+            entryAngle = GetAngleFromCenterFromPointer();
             pendingAttackType = AttackType.ChargedPierce;
             clossHistory.Add(new AttackInputClossHistory { IsEnter = true, Angle = entryAngle });
         }
         else if (wasInside && !isInside)
         {
-            exitAngle = GetAngleFromCenter(currentPos);
+            exitAngle = GetAngleFromCenterFromPointer();
             pendingAttackType = AttackType.SilkSnare;
             clossHistory.Add(new AttackInputClossHistory { IsEnter = false, Angle = exitAngle });
         }
 
         wasInside = isInside;
-
-        if (isInside) insideTime += Time.deltaTime;
     }
 
     private void OnPressCanceled(InputAction.CallbackContext ctx)
     {
         if (!touchState.IsTouching) return;
 
+        attackVisualizer.SetPointerActive(false);
         Vector2 releasePos = GetPointerPosition();
         touchState.EndTouch(releasePos);
 
@@ -150,7 +134,7 @@ public class AttackInputHandler : MonoBehaviour
 
         if (clossHistory.Count >= 2)
         {
-            float angle = GetAngleFromCenter(releasePos);
+            float angle = GetAngleFromCenterFromPointer();
             float charge = CalculateWebMineCharge();
 
             if (charge < settings.webMineFireBorder)
@@ -177,17 +161,16 @@ public class AttackInputHandler : MonoBehaviour
         else if (pendingAttackType == AttackType.ChargedPierce)
         {
             float charge = touchState.HoldDuration;
-            Vector2 direction = (startPosition - releasePos).normalized;
             attackData = new AttackInputData(
                 AttackType.ChargedPierce,
-                direction,
+                GetDirection(entryAngle),
                 charge
             );
             shouldSend = true;
         }
         else if (!isInside && touchState.HoldDuration < settings.volleyBurstHoldDuration)
         {
-            float angle = GetAngleFromCenter(releasePos);
+            float angle = GetAngleFromCenterFromPointer();
             attackData = new AttackInputData(
                 AttackType.VolleyBurst,
                 GetDirection(angle),
@@ -199,7 +182,7 @@ public class AttackInputHandler : MonoBehaviour
         if (shouldSend) attackSender?.SendAttack(attackData);
     }
 
-    // ---- Utility ----
+    // ---- Utility Methods (remain in AttackInputHandler as they relate to input/logic) ----
     private Vector2 GetPointerPosition()
     {
         if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed)
@@ -213,23 +196,20 @@ public class AttackInputHandler : MonoBehaviour
         Vector3 worldPos = mainCam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0));
         worldPos.z = 0;
 
-        float distance = Vector3.Distance(worldPos, circleCenter.position);
+        Vector3 circleCenter = attackVisualizer.GetCircleCenterWorldPosition();
+        float distance = Vector3.Distance(worldPos, circleCenter);
         if (distance > settings.radius) return false;
 
-        if (worldPos.y < circleCenter.position.y) return false;
+        if (worldPos.y < circleCenter.y) return false;
 
-        Vector2 localPos = worldPos - circleCenter.position;
-        float angle = Vector2.SignedAngle(Vector2.up, localPos);
-        bool inSemi = angle >= -90f && angle <= 90f;
-        return settings.mirrorHorizontally ? !inSemi : inSemi;
+        return true;
     }
 
-    private float GetAngleFromCenter(Vector2 screenPos)
+    private float GetAngleFromCenterFromPointer()
     {
-        Vector3 worldPos = mainCam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0));
-        worldPos.z = 0;
-
-        Vector2 localPos = worldPos - circleCenter.position;
+        Vector3 worldPos = attackVisualizer.GetPointerWorldPosition();
+        Vector3 circleCenter = attackVisualizer.GetCircleCenterWorldPosition();
+        Vector2 localPos = (Vector2)(worldPos - circleCenter);
         return Mathf.Atan2(localPos.y, localPos.x) * Mathf.Rad2Deg;
     }
 
@@ -263,16 +243,20 @@ public class AttackInputHandler : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (circleCenter == null || mainCam == null)
+        // Gizmos for visualization can be moved to AttackVisualizer if desired,
+        // but for debugging purposes, it's often useful to keep it here or duplicate it.
+        if (attackVisualizer == null)
         {
             return;
         }
 
+        Vector3 center = attackVisualizer.GetCircleCenterWorldPosition();
+        if (center == Vector3.zero) return;
+
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(circleCenter.position, settings.radius);
+        Gizmos.DrawWireSphere(center, settings.radius);
 
         Gizmos.color = Color.red;
-        Vector3 center = circleCenter.position;
         int segments = 32;
 
         float startAngle = -90f;

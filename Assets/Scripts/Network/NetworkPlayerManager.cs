@@ -50,6 +50,15 @@ public class NetworkPlayerManager : NetworkBehaviour, INetworkRunnerCallbacks
             deviceStateManager.SetDeviceState(DeviceState.Client, true);
         }
 
+
+        if (GlobalRegistry.Instance.TryGetAttackVisualizer(out var attackVisualizer))
+        {
+            if (TryGetCompactedIndex(Runner.LocalPlayer, out int index))
+            {
+                attackVisualizer.SetCircleColor(index);
+            }
+        }
+
         if (HasStateAuthority)
         {
             HasGameStarted = true;

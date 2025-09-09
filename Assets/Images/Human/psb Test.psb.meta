@@ -120,7 +120,7 @@ ScriptedImporter:
         rgba: 4278255615
     - name: head
       guid: 861529bfa01851742a64a81b79c269fc
-      position: {x: 16.271229, y: 0.000009416677, z: 0}
+      position: {x: 15.111517, y: 0.54315484, z: 0}
       rotation: {x: 0, y: 0, z: 0.0178672, w: 0.99984044}
       length: 41.292416
       parentId: 0
@@ -572,7 +572,7 @@ ScriptedImporter:
         rgba: 4278255615
     - name: head
       guid: 861529bfa01851742a64a81b79c269fc
-      position: {x: 16.271223, y: 0.000011592247, z: 0}
+      position: {x: 15.111512, y: 0.54315704, z: 0}
       rotation: {x: 0, y: 0, z: 0.0178672, w: 0.99984044}
       length: 41.292416
       parentId: 0
@@ -1033,7 +1033,7 @@ ScriptedImporter:
         rgba: 4278255615
     - name: head
       guid: 861529bfa01851742a64a81b79c269fc
-      position: {x: 16.271236, y: 0.000002300605, z: 0}
+      position: {x: 15.111516, y: 0.5431628, z: 0}
       rotation: {x: 0, y: 0, z: 0.017867198, w: 0.9998404}
       length: 41.292416
       parentId: 1
@@ -2490,9 +2490,9 @@ ScriptedImporter:
     spriteBone:
     - name: foot_L
       guid: e29c3ceb69de9ab439da863a1272061b
-      position: {x: 11.343013, y: 0.0000010929722, z: 0}
-      rotation: {x: 0, y: 0, z: 0.009523068, w: 0.99995464}
-      length: 8.680886
+      position: {x: 11.343015, y: 0.0000054676816, z: 0}
+      rotation: {x: 0, y: 0, z: 0.0095230695, w: 0.9999547}
+      length: 8.680887
       parentId: 1
       color:
         serializedVersion: 2
@@ -2500,7 +2500,7 @@ ScriptedImporter:
     - name: leg_L
       guid: c93394d248274de4c96f271b76f856b7
       position: {x: 22.525835, y: -0.000012440478, z: 0}
-      rotation: {x: 0, y: 0, z: 0.65956366, w: 0.75164866}
+      rotation: {x: 0, y: 0, z: 0.6595637, w: 0.7516486}
       length: 11.3430195
       parentId: 2
       color:
@@ -2510,7 +2510,7 @@ ScriptedImporter:
       guid: 5abcd9094ceb9c6419f6695f60100ce9
       position: {x: 35.868614, y: 24.420837, z: 0}
       rotation: {x: 0, y: 0, z: 0.9999572, w: -0.009258451}
-      length: 22.525837
+      length: 22.525835
       parentId: -1
       color:
         serializedVersion: 2
@@ -2940,7 +2940,7 @@ ScriptedImporter:
     - name: leg_R
       guid: f801cfa4384e1e443ba6b9e38d03698e
       position: {x: 25.254507, y: -0.000015347436, z: 0}
-      rotation: {x: 0, y: 0, z: 0.7411875, w: 0.67129815}
+      rotation: {x: 0, y: 0, z: 0.7411875, w: 0.6712982}
       length: 34.328205
       parentId: 1
       color:
@@ -3842,7 +3842,7 @@ ScriptedImporter:
         rgba: 4278255615
     - name: head
       guid: 861529bfa01851742a64a81b79c269fc
-      position: {x: 16.271227, y: 0.0000012453407, z: 0}
+      position: {x: 15.111514, y: 0.543162, z: 0}
       rotation: {x: 0, y: 0, z: 0.017867213, w: 0.99984044}
       length: 41.292416
       parentId: 1
@@ -3897,7 +3897,7 @@ ScriptedImporter:
     - name: leg_R
       guid: f801cfa4384e1e443ba6b9e38d03698e
       position: {x: 25.254501, y: -0.0000071954237, z: 0}
-      rotation: {x: 0, y: 0, z: 0.7411875, w: 0.6712981}
+      rotation: {x: 0, y: 0, z: 0.7411875, w: 0.67129815}
       length: 34.328197
       parentId: 7
       color:
@@ -3907,24 +3907,24 @@ ScriptedImporter:
       guid: 5abcd9094ceb9c6419f6695f60100ce9
       position: {x: -9.651171, y: 13.37231, z: 0}
       rotation: {x: 0, y: -0, z: 0.7087415, w: 0.70546836}
-      length: 22.52584
+      length: 22.525839
       parentId: 0
       color:
         serializedVersion: 2
         rgba: 4294934528
     - name: leg_L
       guid: c93394d248274de4c96f271b76f856b7
-      position: {x: 22.525839, y: -0.000005343315, z: 0}
-      rotation: {x: 0, y: 0, z: 0.65956366, w: 0.7516487}
-      length: 11.343022
+      position: {x: 22.525837, y: -0.000005307998, z: 0}
+      rotation: {x: 0, y: 0, z: 0.6595637, w: 0.75164866}
+      length: 11.34302
       parentId: 9
       color:
         serializedVersion: 2
         rgba: 4294901888
     - name: foot_L
       guid: e29c3ceb69de9ab439da863a1272061b
-      position: {x: 11.3430195, y: -0.00000065110856, z: 0}
-      rotation: {x: 0, y: 0, z: 0.009523065, w: 0.9999547}
+      position: {x: 11.34302, y: -0.00000046305885, z: 0}
+      rotation: {x: 0, y: 0, z: 0.00952303, w: 0.9999547}
       length: 8.680888
       parentId: 10
       color:

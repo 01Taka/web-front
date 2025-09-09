@@ -5,8 +5,10 @@ public class AttackInputSettings : ScriptableObject
 {
     [Header("UI and Visuals")]
     public GameObject circlePrefab;
+    public GameObject pointerPrefab;
     public float radius;
-    public bool mirrorHorizontally;
+    public PlayerColor playerColor;
+    public float circleAlpha = 0.3f;
 
     [Header("Attack Parameters")]
     public float volleyBurstHoldDuration = 0.2f;

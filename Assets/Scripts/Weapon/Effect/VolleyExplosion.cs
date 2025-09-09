@@ -3,6 +3,8 @@ using System.Collections;
 
 public class VolleyExplosion : MonoBehaviour, IPoolable
 {
+    public bool IsReusable { get; set; }
+
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private float animationDuration = 0.3f;
     [SerializeField] private SpriteRenderer spriteRenderer;
@@ -13,7 +15,7 @@ public class VolleyExplosion : MonoBehaviour, IPoolable
 
     private ObjectPool<VolleyExplosion> _pool;
 
-    public void SetPool<T>(ObjectPool<T> pool) where T : Component
+    public void SetPool<T>(ObjectPool<T> pool) where T : Component, IPoolable
     {
         _pool = pool as ObjectPool<VolleyExplosion>;
     }

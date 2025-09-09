@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 public abstract class ProjectileBase : MonoBehaviour, IPoolable
 {
+    public bool IsReusable { get; set; }
+
     [Header("Projectile Settings")]
     [SerializeField] protected LayerMask enemyLayer;
     [SerializeField] protected SpriteRenderer _spriteRenderer;
@@ -24,7 +26,7 @@ public abstract class ProjectileBase : MonoBehaviour, IPoolable
         ResetDetectedEnemies();
     }
 
-    public void SetPool<T>(ObjectPool<T> pool) where T : Component
+    public void SetPool<T>(ObjectPool<T> pool) where T : Component, IPoolable
     {
         _pool = pool as ObjectPool<ProjectileBase>;
     }

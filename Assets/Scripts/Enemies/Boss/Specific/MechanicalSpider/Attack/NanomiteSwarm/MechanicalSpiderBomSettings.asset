@@ -12,18 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5c18bcb3c4be6942964c3007fa2ac29, type: 3}
   m_Name: MechanicalSpiderBomSettings
   m_EditorClassIdentifier: 
+  NumberOfBoms: 7
+  SpawnRadius: 2
+  ExplosionTime: 5
   RotationSpeed: 100
   RotationSpeedOnDestroyed: 300
   BlinkColor: {r: 1, g: 0.53396225, b: 0.53396225, a: 1}
   StartBlinkInterval: 0.5
   EndBlinkInterval: 0.1
-  BomClip: {fileID: 8300000, guid: 1575321c545a5c4408d577ff5637e2c7, type: 3}
-  ExplosionPrefab: {fileID: 2250305288276729591, guid: e63d87553f9f86f439dd6ba1e7d64a47, type: 3}
-  ExplosionClipOnDestroy: {fileID: 8300000, guid: 60cd599ccc4075e46bef31375cded855, type: 3}
-  ExplosionPrefabOnDestroy: {fileID: 3668804249620944223, guid: d365ae20269bc4b4d99628badaf0dd4c, type: 3}
   ExplosionTimeRandomRange: 0.5
   ExplosionRadius: 0.5
   SeekSpeed: 0.5
   SeekSpeedOnDestroyed: 20
+  BomClip: {fileID: 8300000, guid: 1575321c545a5c4408d577ff5637e2c7, type: 3}
+  ExplosionClipOnDestroy: {fileID: 8300000, guid: 60cd599ccc4075e46bef31375cded855, type: 3}
   HitClip: {fileID: 8300000, guid: 0b3d63dd6d30e3e4ab246216aa209396, type: 3}
   HitClipVolume: 0.3

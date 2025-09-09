@@ -1,29 +1,45 @@
+ï»¿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using System.Collections;
-using System.Collections.Generic;
 
-public class MechanicalSpiderBom : MonoBehaviour, IDamageable
+/// <summary>
+/// Defines the different states or outcomes for the bomb.
+/// </summary>
+public enum BombState
 {
-    // --- ƒtƒB[ƒ‹ƒh ---
-    [Tooltip("‚±‚ÌƒXƒpƒCƒ_[‚Ìİ’è‚ğ’è‹`‚·‚éScriptableObject")]
-    [SerializeField]
+    /// <summary>
+    /// The bomb was destroyed because its health reached zero.
+    /// </summary>
+    DestroyedByHealth,
+
+    /// <summary>
+    /// The bomb reached its secondary target after being destroyed.
+    /// </summary>
+    TargetReachedAfterDestroyed,
+
+    /// <summary>
+    /// The bomb exploded because its internal timer expired.
+    /// </summary>
+    ExplodedByTimer
+}
+
+public class MechanicalSpiderBom : MonoBehaviour, IDamageable, IPoolable
+{
+    public  bool IsReusable { get; set; }
+
     private MechanicalSpiderBomSettings _settings;
 
-    [Header("ƒCƒxƒ“ƒg‚ÆQÆ")]
     [SerializeField]
     private SpriteRenderer _spriteRenderer;
-    [Tooltip("”š”­‚ÉŒÄ‚Î‚ê‚éƒCƒxƒ“ƒg")]
-    [SerializeField]
-    private UnityEvent _onExplosion;
-    [Tooltip("–Ú•W‚É“’B‚µ‚½‚ÉŒÄ‚Î‚ê‚éƒCƒxƒ“ƒg")]
-    [SerializeField]
-    private UnityEvent _onTargetReached;
 
     private Color _originalColor = Color.white;
     private HealthManager _healthManager;
-    private UnityAction _explosionAction;
-    private UnityAction _targetReachedAction;
+
+    private UnityAction<BombState> _onBombStateChanged;
+
+    // å¤–éƒ¨ã‹ã‚‰æ³¨å…¥ã•ã‚Œã‚‹ç§»å‹•ãƒ­ã‚¸ãƒƒã‚¯
+    private IBomMovement _movementStrategy;
 
     private float _baseExplosionTime;
     private float _explosionTime;
@@ -32,33 +48,48 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
     private Vector2 _targetPositionOnDestroyed;
     private bool _isDestroyed = false;
 
-    // --- ƒƒ\ƒbƒh ---
+    private ObjectPool<MechanicalSpiderBom> _pool;
 
-    /// <summary>
-    /// ”š’e‚ğ‹N“®‚·‚éƒƒ\ƒbƒhB
-    /// </summary>
-    /// <param name="explosionDuration">”š”­‚Ü‚Å‚ÌŠÔ</param>
-    /// <param name="maxHealth">Å‘åHP</param>
-    /// <param name="target">”j‰ó‘O‚Ì’ÇÕ–Ú•W</param>
-    /// <param name="targetOnDestroyed">”j‰óŒã‚Ì’ÇÕ–Ú•W</param>
-    /// <param name="onExplosionAction">”š”­‚ÉÀs‚³‚ê‚éƒAƒNƒVƒ‡ƒ“</param>
-    /// <param name="onTargetReachedAction">–Ú•W“’B‚ÉÀs‚³‚ê‚éƒAƒNƒVƒ‡ƒ“</param>
-    public void Activate(float explosionDuration, float maxHealth, Vector2 target, Vector2 targetOnDestroyed,
-                         UnityAction onExplosionAction, UnityAction onTargetReachedAction)
+    public void SetPool<T>(ObjectPool<T> pool) where T : Component, IPoolable
     {
-        _baseExplosionTime = explosionDuration;
-        _explosionTime = explosionDuration + Random.Range(0, _settings.ExplosionTimeRandomRange);
+        if (pool is ObjectPool<MechanicalSpiderBom> bomPool)
+        {
+            _pool = bomPool;
+        }
+    }
+
+    public void ReturnToPool()
+    {
+        // ãƒ—ãƒ¼ãƒ«ã«æˆ»ã‚‹å‰ã«ã€ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªçŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆã—ã€å®Ÿè¡Œä¸­ã®ã‚³ãƒ«ãƒ¼ãƒãƒ³ã‚’å…¨ã¦åœæ­¢ã™ã‚‹
+        StopAllCoroutines();
+
+        if (_pool != null)
+        {
+            _pool.ReturnToPool(this);
+        }
+
+        // å¿µã®ãŸã‚ã€å‚ç…§ã‚’ã‚¯ãƒªã‚¢
+        _onBombStateChanged = null;
+        _movementStrategy = null;
+    }
+
+    public void Activate(MechanicalSpiderBomSettings settings, float maxHealth, Vector2 target, Vector2 targetOnDestroyed,
+        UnityAction<BombState> onBombStateChanged, IBomMovement movementStrategy)
+    {
+        _settings = settings;
+        _baseExplosionTime = _settings.ExplosionTime;
+        _explosionTime = _settings.ExplosionTime + Random.Range(0, _settings.ExplosionTimeRandomRange);
         _targetPosition = target;
         _targetPositionOnDestroyed = targetOnDestroyed;
         _timeElapsed = 0f;
+        _isDestroyed = false;
 
-        _explosionAction = onExplosionAction;
-        _targetReachedAction = onTargetReachedAction;
-
-        _onExplosion.AddListener(_explosionAction);
-        _onTargetReached.AddListener(_targetReachedAction);
+        _onBombStateChanged = onBombStateChanged;
+        // ç§»å‹•ãƒ­ã‚¸ãƒƒã‚¯ã‚’æ³¨å…¥
+        _movementStrategy = movementStrategy;
 
         _healthManager.SetMaxHealth(maxHealth);
+        _spriteRenderer.color = _originalColor;
 
         StartCoroutine(StartTimerAndEffects());
     }
@@ -68,10 +99,21 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
         if (_spriteRenderer != null)
         {
             _originalColor = _spriteRenderer.color;
-
-            _healthManager = new HealthManager(100);
-            _healthManager.AddOnDeathAction(StartSeekingOnDestroyed);
         }
+        _healthManager = new HealthManager(100);
+    }
+
+    private void OnEnable()
+    {
+        // ã‚¤ãƒ™ãƒ³ãƒˆã‚’è³¼èª­
+        _healthManager?.AddOnDeathAction(StartSeekingOnDestroyed);
+    }
+
+    private void OnDisable()
+    {
+        // ã‚¤ãƒ™ãƒ³ãƒˆè³¼èª­ã‚’ç¢ºå®Ÿã«è§£é™¤
+        _healthManager?.RemoveOnDeathAction(StartSeekingOnDestroyed);
+        ReturnToPool();
     }
 
     private void Update()
@@ -79,7 +121,7 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
         if (!_isDestroyed)
         {
             transform.Rotate(0, 0, _settings.RotationSpeed * Time.deltaTime);
-            transform.position = Vector2.MoveTowards(transform.position, _targetPosition, _settings.SeekSpeed * Time.deltaTime);
+            _movementStrategy?.Move(transform, _targetPosition, _settings.SeekSpeed);
         }
         else
         {
@@ -89,16 +131,12 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
             if (Vector2.Distance(transform.position, _targetPositionOnDestroyed) < 0.1f)
             {
                 InstantiateExplosion(ExplosionType.Default, _settings.ExplosionClipOnDestroy, _targetPositionOnDestroyed);
-
-                _onTargetReached.Invoke();
-                Destroy(gameObject);
+                _onBombStateChanged?.Invoke(BombState.TargetReachedAfterDestroyed);
+                ReturnToPool();
             }
         }
     }
 
-    /// <summary>
-    /// ”š”­ƒGƒtƒFƒNƒg‚ÆƒTƒEƒ“ƒh‚ğ¶¬‚·‚é”Ä—pƒƒ\ƒbƒh
-    /// </summary>
     private void InstantiateExplosion(ExplosionType explosionType, AudioClip explosionClip, Vector2 position)
     {
         Vector3 explosionPosition = (Vector3)position + (Vector3)Random.insideUnitCircle * _settings.ExplosionRadius;
@@ -118,18 +156,14 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
         {
             SoundManager.Instance.PlayEffect(_settings.HitClip, _settings.HitClipVolume);
         }
-        
-        if (_healthManager.CurrentHealth == 0)
-        {
-            StartSeekingOnDestroyed();
-        }
     }
 
     private void StartSeekingOnDestroyed()
     {
         _isDestroyed = true;
-        StopAllCoroutines();
         _spriteRenderer.color = _settings.BlinkColor;
+
+        _onBombStateChanged?.Invoke(BombState.DestroyedByHealth);
     }
 
     private IEnumerator StartTimerAndEffects()
@@ -140,7 +174,7 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
         int nextBlinkIndex = 0;
         List<float> blinkTimings = CalculateBlinkTimings();
 
-        while (_timeElapsed < _explosionTime && _healthManager.IsAlive)
+        while (_timeElapsed < _explosionTime && _healthManager.IsAlive && !_isDestroyed)
         {
             _timeElapsed += Time.deltaTime;
 
@@ -153,17 +187,20 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
             yield return null;
         }
 
-        if (_healthManager.IsAlive)
+        // ã‚³ãƒ«ãƒ¼ãƒãƒ³çµ‚äº†æ™‚ã®çŠ¶æ…‹ã‚’ãƒã‚§ãƒƒã‚¯
+        if (_healthManager.IsAlive && !_isDestroyed)
         {
+            // ã‚¿ã‚¤ãƒãƒ¼æº€äº†ã§çˆ†ç™º
             InstantiateExplosion(ExplosionType.Blue, _settings.BomClip, transform.position);
-            _onExplosion.Invoke();
-            Destroy(gameObject);
+            _onBombStateChanged?.Invoke(BombState.ExplodedByTimer);
+            ReturnToPool();
+        }
+        else
+        {
+            _isDestroyed = true;
         }
     }
 
-    /// <summary>
-    /// “_–Åƒ^ƒCƒ~ƒ“ƒO‚ğ–‘O‚ÉŒvZ‚·‚éƒwƒ‹ƒp[ƒƒ\ƒbƒh
-    /// </summary>
     private List<float> CalculateBlinkTimings()
     {
         List<float> timings = new List<float>();
@@ -183,23 +220,5 @@ public class MechanicalSpiderBom : MonoBehaviour, IDamageable
             }
         }
         return timings;
-    }
-
-    private void OnDestroy()
-    {
-        if (_onExplosion != null && _explosionAction != null)
-        {
-            _onExplosion.RemoveListener(_explosionAction);
-        }
-
-        if (_onTargetReached != null && _targetReachedAction != null)
-        {
-            _onTargetReached.RemoveListener(_targetReachedAction);
-        }
-
-        if (_healthManager != null)
-        {
-            _healthManager.ClearEvents();
-        }
     }
 }

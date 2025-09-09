@@ -10,8 +10,11 @@ public enum DeathReason
 [System.Serializable]
 public class DeathEvent : UnityEvent<DeathReason> { }
 
-public class HordeEnemy : MonoBehaviour, IDamageable
+public class HordeEnemy : MonoBehaviour, IDamageable, IPoolable
 {
+    public bool IsReusable { get; set; }
+    private ObjectPool<HordeEnemy> _pool;
+
     [SerializeField] private HordeEnemySettings _settings;
     [SerializeField] public DeathEvent _onHordeDeath;
 
@@ -30,6 +33,24 @@ public class HordeEnemy : MonoBehaviour, IDamageable
         SetSize(_settings.enemyScale);
         _onHordeDeath.RemoveAllListeners(); // ÉäÉXÉiÅ[ÇÃëΩèdìoò^ÇñhÇÆ
         AddDeathAction(PlayDestoryEffect);
+    }
+
+    public void SetPool<T>(ObjectPool<T> pool) where T : Component, IPoolable
+    {
+        _pool = pool as ObjectPool<HordeEnemy>;
+    }
+
+    public void ReturnToPool()
+    {
+        if (_pool != null)
+        {
+            _pool.ReturnToPool(this);
+        }
+        else
+        {
+            Debug.LogWarning($"No pool assigned for {gameObject.name}, destroying instead.");
+            Destroy(gameObject);
+        }
     }
 
     public void AddDeathAction(UnityAction<DeathReason> action)
