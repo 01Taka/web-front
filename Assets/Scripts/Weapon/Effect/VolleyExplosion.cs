@@ -56,10 +56,9 @@ public class VolleyExplosion : MonoBehaviour, IPoolable
         Collider2D[] targets = Physics2D.OverlapCircleAll(transform.position, explosionRadius, enemyLayer);
         foreach (var target in targets)
         {
-            if (target.TryGetComponent<IDamageable>(out var damageable))
-            {
-                damageable.TakeDamage(explosionDamage);
-            }
+            IDamageable damageable = target.GetComponentInParent<IDamageable>();
+            if (damageable == null) continue;
+            damageable.TakeDamage(explosionDamage);
         }
 
         ReturnToPool();

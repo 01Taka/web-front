@@ -17,11 +17,13 @@ MonoBehaviour:
   idleSpeed: 2
   PunchLiftHeight: 1
   PunchLiftDuration: 1
+  PunchDurationOffset: 0.16
+  PunchDuration: 7.2
   PunchPhases:
   - moveDuration: 0.2
-    holdDuration: 3
+    holdDuration: 2.98
   - moveDuration: 0.2
-    holdDuration: 3.4
+    holdDuration: 2.98
   - moveDuration: 0.2
     holdDuration: 2
   PunchReturningDuration: 0.5

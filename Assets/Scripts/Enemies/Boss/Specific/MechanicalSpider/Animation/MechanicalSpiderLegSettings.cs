@@ -15,6 +15,8 @@ public class MechanicalSpiderLegSettings : ScriptableObject
     [Header("Punch Motion")]
     public float PunchLiftHeight = 1.0f;
     public float PunchLiftDuration = 0.5f;
+    public float PunchDurationOffset = 0.14f;
+    public float PunchDuration = 7.5f;
     public List<PunchPhaseTimings> PunchPhases = new List<PunchPhaseTimings>();
     public float PunchReturningDuration = 0.5f;
     public Vector3 PunchHoldOffset = Vector3.zero;

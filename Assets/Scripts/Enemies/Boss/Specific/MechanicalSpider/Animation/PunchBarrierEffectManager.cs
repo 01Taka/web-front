@@ -76,6 +76,34 @@ public class PunchBarrierEffectManager : MonoBehaviour
 
     private IEnumerator PunchSequence(MechanicalSpiderLeg mechanicalSpiderLeg, Vector3 finalTarget)
     {
+        float totalMoveDuration = 0f;
+
+        // 最後の要素を除いた各バリアのmoveDurationの合計を計算
+        for (int i = 0; i < _settings.PunchPhases.Count - 1; i++)
+        {
+            totalMoveDuration += _settings.PunchPhases[i].moveDuration;
+        }
+
+        // PunchDurationからmoveDurationの合計を引いて、残りの時間をholdDurationに割り当てる
+        float remainingHoldDuration = _settings.PunchDuration - totalMoveDuration - _settings.PunchLiftDuration +_settings.PunchDurationOffset;
+
+        // 各PunchPhaseTimingsに新しいholdDurationを設定 (最後のフェーズを除く)
+        for (int i = 0; i < _settings.PunchPhases.Count - 1; i++)
+        {
+            var phase = _settings.PunchPhases[i];
+
+            // ここで割合で分ける
+            float ratio = phase.moveDuration / totalMoveDuration;
+            float newHoldDuration = remainingHoldDuration * ratio;
+
+            // 更新したholdDurationを再設定
+            _settings.PunchPhases[i] = new PunchPhaseTimings
+            {
+                moveDuration = phase.moveDuration,
+                holdDuration = newHoldDuration
+            };
+        }
+
         // 振りかぶりフェーズ
         yield return StartCoroutine(HandleWindupPhase(mechanicalSpiderLeg));
 
@@ -97,6 +125,7 @@ public class PunchBarrierEffectManager : MonoBehaviour
 
         _punchSequenceCoroutine = null;
     }
+
 
     private IEnumerator HandleWindupPhase(MechanicalSpiderLeg mechanicalSpiderLeg)
     {

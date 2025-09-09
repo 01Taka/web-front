@@ -16,7 +16,7 @@ MonoBehaviour:
   AttackName: Over
   BaseDamage: 100
   AttackDuration: 1
-  AttackPreparationTime: 7.5
+  AttackPreparationTime: 7.2
   CancelDamageThreshold: 1200
   CancelSelfInflictedDamage: 1500
   FiringPortType: 1

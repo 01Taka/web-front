@@ -92,15 +92,9 @@ public class WebArea : MonoBehaviour, IPoolable
         Collider2D[] enemies = Physics2D.OverlapCircleAll(transform.position, effectRadius, enemyLayer);
         foreach (var enemy in enemies)
         {
-            if (enemy.TryGetComponent<IDamageable>(out var damageable))
-            {
-                damageable.TakeDamage(tickDamage);
-            }
-
-            if (enemy.TryGetComponent<IMovable>(out var movable))
-            {
-                movable.ApplySlow(slowMultiplier, tickInterval + 0.1f);
-            }
+            IDamageable damageable = enemy.GetComponentInParent<IDamageable>();
+            if (damageable == null) continue;
+            damageable.TakeDamage(tickDamage);
         }
     }
 
